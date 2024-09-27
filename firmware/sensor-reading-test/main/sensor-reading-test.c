@@ -2,6 +2,7 @@
 #include "esp_system.h"
 #include "esp_log.h"
 #include "driver/i2c_master.h"
+#include "freertos/FreeRTOS.h"
 
 #include "sensor-reading-test.h"
 
@@ -9,6 +10,7 @@
 #define SCL_GPIO_PIN 6
 #define SDA_GPIO_PIN 7
 #define I2C_CONSOLE_TAG "I2C"
+#define I2C_PORT_AUTO -1
 
 i2c_master_bus_config_t i2c_mst_config = {
     .clk_source = I2C_CLK_SRC_DEFAULT,
@@ -33,6 +35,7 @@ void app_main(void)
 {
     ESP_LOGI(I2C_CONSOLE_TAG, "Starting I2C");
     init_i2c();
+    get_and_print_temp();
 }
 
 void init_i2c(void)
@@ -40,4 +43,19 @@ void init_i2c(void)
     ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config, &bus_handle));
     ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle));
     ESP_LOGI(I2C_CONSOLE_TAG, "I2C connection successfully established");
+}
+
+void get_and_print_temp(void)
+{
+    uint8_t write_buffer[1] = {0xE3};
+    uint8_t read_buffer[2];
+    ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, write_buffer, 1, read_buffer, 2, -1));
+    uint16_t temp_code = (read_buffer[0] << 8) | read_buffer[1];
+    float temp_celcius = convert_to_celcius(temp_code);
+    printf("Temperature: %.2f C\n", temp_celcius);
+}
+
+float convert_to_celcius(uint16_t temp_code)
+{
+    return ((175.25 * temp_code) / 65536.0) - 46.85;
 }
