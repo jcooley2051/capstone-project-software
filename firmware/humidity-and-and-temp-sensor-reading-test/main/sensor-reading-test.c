@@ -36,6 +36,18 @@ void app_main(void)
     ESP_LOGI(I2C_CONSOLE_TAG, "Starting I2C");
     init_i2c();
     get_and_print_temp();
+    vTaskDelay(1000);
+    get_and_print_temp();
+    //xTaskCreate(&temp_task, "temp_task", 2048, NULL, 5, NULL);
+}
+
+void temp_task(void)
+{
+    for(;;)
+    {
+        get_and_print_temp();
+        vTaskDelay(pdMS_TO_TICKS(1000));
+    }
 }
 
 void init_i2c(void)
