@@ -27,6 +27,10 @@ i2c_device_config_t dev_cfg = {
     .dev_addr_length = I2C_ADDR_BIT_LEN_7,
     .device_address = SENSOR_ADDRESS,
     .scl_speed_hz = 100000,
+    .scl_wait_us = 10000,
+    .flags = {
+        .disable_ack_check = 1,
+    },
 };
 
 i2c_master_dev_handle_t dev_handle;
@@ -36,8 +40,9 @@ void app_main(void)
     ESP_LOGI(I2C_CONSOLE_TAG, "Starting I2C");
     init_i2c();
     get_and_print_temp();
-    vTaskDelay(1000);
-    get_and_print_temp();
+    //vTaskDelay(1000);
+    //get_and_print_temp();
+    //get_and_print_humidity();
     //xTaskCreate(&temp_task, "temp_task", 2048, NULL, 5, NULL);
 }
 
@@ -59,6 +64,7 @@ void init_i2c(void)
 
 void get_and_print_temp(void)
 {
+    // Hex command for getting temperature reading
     uint8_t write_buffer[1] = {0xE3};
     uint8_t read_buffer[2];
     ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, write_buffer, 1, read_buffer, 2, -1));
@@ -67,7 +73,22 @@ void get_and_print_temp(void)
     printf("Temperature: %.2f C\n", temp_celcius);
 }
 
+void get_and_print_humidity(void)
+{
+    uint8_t write_buffer[1] = {0xE5};
+    uint8_t read_buffer[2];
+    ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, write_buffer, 1, read_buffer, 2, -1));
+    uint16_t humidity_code = (read_buffer[0] << 8) | read_buffer[1];
+    float relative_humidity = convert_to_humidity(humidity_code);
+    printf("Relative Humidity: %0.2f %%\n", relative_humidity);
+}
+
 float convert_to_celcius(uint16_t temp_code)
 {
     return ((175.25 * temp_code) / 65536.0) - 46.85;
+}
+
+float convert_to_humidity(uint16_t humidity_code)
+{
+    return ((125.0 * humidity_code)/65536) - 6;
 }
