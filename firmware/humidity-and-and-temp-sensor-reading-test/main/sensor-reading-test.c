@@ -3,6 +3,7 @@
 #include "esp_log.h"
 #include "driver/i2c_master.h"
 #include "freertos/FreeRTOS.h"
+#include "esp_rom_sys.h" // For blocking delay during asynchronous I2C operation
 
 #include "sensor-reading-test.h"
 
@@ -26,8 +27,8 @@ i2c_master_bus_handle_t bus_handle;
 i2c_device_config_t dev_cfg = {
     .dev_addr_length = I2C_ADDR_BIT_LEN_7,
     .device_address = SENSOR_ADDRESS,
-    .scl_speed_hz = 100000,
-    .scl_wait_us = 10000,
+    .scl_speed_hz = 400000,
+    .scl_wait_us = 30000,
     .flags = {
         .disable_ack_check = 1,
     },
@@ -39,20 +40,27 @@ void app_main(void)
 {
     ESP_LOGI(I2C_CONSOLE_TAG, "Starting I2C");
     init_i2c();
-    get_and_print_temp();
+    //send_reset();
+    //get_and_print_temp_async();
+    //send_reset();
     //vTaskDelay(1000);
-    //get_and_print_temp();
+    //get_and_print_temp_async();
     //get_and_print_humidity();
-    //xTaskCreate(&temp_task, "temp_task", 2048, NULL, 5, NULL);
+    xTaskCreate(&temp_task, "temp_task", 2048, NULL, 5, NULL);
 }
 
 void temp_task(void)
 {
     for(;;)
     {
-        get_and_print_temp();
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        get_and_print_temp_async();
+        vTaskDelay(pdMS_TO_TICKS(250));
     }
+}
+
+void send_reset(void)
+{
+    uint8_t write_buffer[1] = {0xE3};
 }
 
 void init_i2c(void)
@@ -68,6 +76,20 @@ void get_and_print_temp(void)
     uint8_t write_buffer[1] = {0xE3};
     uint8_t read_buffer[2];
     ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, write_buffer, 1, read_buffer, 2, -1));
+    uint16_t temp_code = (read_buffer[0] << 8) | read_buffer[1];
+    float temp_celcius = convert_to_celcius(temp_code);
+    printf("Temperature: %.2f C\n", temp_celcius);
+}
+
+void get_and_print_temp_async(void)
+{
+    // Hex command for getting temperature reading without master hold
+    uint8_t write_buffer[1] = {0xF3};
+    uint8_t read_buffer[2];
+    // Send read temperature request
+    ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buffer, 1, -1));
+    esp_rom_delay_us(25000);
+    ESP_ERROR_CHECK(i2c_master_receive(dev_handle, read_buffer, 2, -1));
     uint16_t temp_code = (read_buffer[0] << 8) | read_buffer[1];
     float temp_celcius = convert_to_celcius(temp_code);
     printf("Temperature: %.2f C\n", temp_celcius);
