@@ -3,5 +3,6 @@
 
 void app_main(void);
 void init_i2c(void);
+void configure_bme280(void);
 
 #endif
