@@ -53,6 +53,7 @@ void temp_task(void)
 {
     for(;;)
     {
+        get_and_print_humidity_async();
         get_and_print_temp_async();
         vTaskDelay(pdMS_TO_TICKS(250));
     }
@@ -83,12 +84,13 @@ void get_and_print_temp(void)
 
 void get_and_print_temp_async(void)
 {
-    // Hex command for getting temperature reading without master hold
-    uint8_t write_buffer[1] = {0xF3};
+    // Read temp from last humidity measurement
+    uint8_t write_buffer[1] = {0xE0};
     uint8_t read_buffer[2];
     // Send read temperature request
     ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buffer, 1, -1));
-    esp_rom_delay_us(25000);
+    // Delay shouldn't be needed for reading temp from last RH measurement
+    //esp_rom_delay_us(25000);
     ESP_ERROR_CHECK(i2c_master_receive(dev_handle, read_buffer, 2, -1));
     uint16_t temp_code = (read_buffer[0] << 8) | read_buffer[1];
     float temp_celcius = convert_to_celcius(temp_code);
@@ -100,6 +102,18 @@ void get_and_print_humidity(void)
     uint8_t write_buffer[1] = {0xE5};
     uint8_t read_buffer[2];
     ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, write_buffer, 1, read_buffer, 2, -1));
+    uint16_t humidity_code = (read_buffer[0] << 8) | read_buffer[1];
+    float relative_humidity = convert_to_humidity(humidity_code);
+    printf("Relative Humidity: %0.2f %%\n", relative_humidity);
+}
+
+void get_and_print_humidity_async(void)
+{
+    uint8_t write_buffer[1] = {0xF5}; // Measure relative humidity, no master hold mode
+    uint8_t read_buffer[2];
+    ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buffer, 1, -1));
+    esp_rom_delay_us(20000);
+    ESP_ERROR_CHECK(i2c_master_receive(dev_handle, read_buffer, 2, -1));
     uint16_t humidity_code = (read_buffer[0] << 8) | read_buffer[1];
     float relative_humidity = convert_to_humidity(humidity_code);
     printf("Relative Humidity: %0.2f %%\n", relative_humidity);
