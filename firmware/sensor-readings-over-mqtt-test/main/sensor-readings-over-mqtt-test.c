@@ -14,7 +14,7 @@
 #define BME_CONSOLE_TAG "BME280"
 
 // Wifi credentials
-#define WIFI_SSID ""
+#define WIFI_SSID "Hackerfab Monitor"
 #define WIFI_PASSWORD ""
 
 #define SCL_GPIO_PIN 6
@@ -36,6 +36,8 @@ int8_t dig_H6;
 // I2C handles
 i2c_master_bus_handle_t bus_handle;
 i2c_master_dev_handle_t bme_dev_handle;
+
+SemaphoreHandle_t wifi_mqtt_semaphore;
 
 //                                          I2C Stuff
 
@@ -107,15 +109,24 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
     } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+        xSemaphoreGive(wifi_mqtt_semaphore);
         s_retry_num = 0;
     }
 }
 
 void init_mqtt()
 {
+    
     const esp_mqtt_client_config_t mqtt_cfg = {
-        .broker.address.uri = "mqtt://192.168.50.170:1883",  // Set your Mosquitto broker's IP address here
+        .broker.address.uri = "mqtt://10.42.0.1:1883",  // Set your Mosquitto broker's IP address here
     };
+    
+   /*
+    const esp_mqtt_client_config_t mqtt_cfg = {
+        .broker.address.uri = "mqtt://test.mosquitto.org:1883",  // Set your Mosquitto broker's IP address here
+    };
+    */
+   
     mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_register_event(mqtt_client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
     esp_mqtt_client_start(mqtt_client);
@@ -170,8 +181,9 @@ void config_wifi()
     wifi_config_t wifi_cfg = {
         .sta = {
             .ssid = WIFI_SSID,
-            .password = WIFI_PASSWORD,
-            .threshold.authmode = WIFI_AUTH_WPA2_PSK,
+            //.password = WIFI_PASSWORD,
+            //.threshold.authmode = WIFI_AUTH_WPA2_PSK,
+            .threshold.authmode = WIFI_AUTH_OPEN,
         },
     };
 
@@ -296,7 +308,13 @@ void print_sensor_readings(uint8_t *readings)
     // resolution is 0.01 DegC, so "1234" equals 12.34 DegC
     temp = (t_fine * 5 + 128) >> 8;
     printf("Temp: %0.2f C\n", temp/100.0);
-    esp_mqtt_client_publish(mqtt_client, "/readings/temp", sprintf("Temperature %d", temp/100), 0, 1, 0);
+    char message[50];
+    snprintf(message, sizeof(message), "Temperature %0.2f", temp / 100.0);
+
+    printf("Publishing\n");
+    // Publish the formatted temperature message to the MQTT broker
+    esp_mqtt_client_publish(mqtt_client, "/readings/temp", message, 0, 1, 0);
+   // esp_mqtt_client_publish(mqtt_client, "/readings/temp", sprintf("Temperature %d", temp/100), 0, 1, 0);
 
 
     // Print humidity readings (for explaination, visit BME280 datasheet)
@@ -313,12 +331,22 @@ void print_sensor_readings(uint8_t *readings)
     // Percent RH as unsigned 32 bit integer in Q22.10 format
     humidity = (uint32_t)(v_x1_u32r >> 12);
     printf("Humidity: %0.2f %%\n", humidity/1024.0);
+    snprintf(message, sizeof(message), "Humidity %0.2f", humidity / 1024.0);
+    esp_mqtt_client_publish(mqtt_client, "/readings/humidity", message, 0, 1, 0);
 }
 
 
 
 void app_main(void)
 {
+
+    wifi_mqtt_semaphore = xSemaphoreCreateBinary();
+
+    if (wifi_mqtt_semaphore == NULL)
+    {
+        abort();
+    }
+
     // NVS is used to store wifi configuration info
     // Honestly, I'm not sure if we need it, but the default wifi settings require it, and it's not hurting anything
     init_flash();
@@ -329,11 +357,14 @@ void app_main(void)
     // Configure the wifi and connect to the network
     config_wifi();
 
+    xSemaphoreTake(wifi_mqtt_semaphore, portMAX_DELAY);
+    ESP_LOGI("SYSTEM", "Initializing MQTT");
+    
     // Initialize the MQTT driver and connect to the broker
     init_mqtt();
 
 
-        ESP_LOGI(SYSTEM_CONSOLE_TAG, "Starting System");
+    ESP_LOGI(SYSTEM_CONSOLE_TAG, "Starting System");
 
     // Initialize the I2C driver to work with the 
     ESP_LOGI(I2C_CONSOLE_TAG, "Initializing I2C");
