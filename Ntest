@@ -3,9 +3,9 @@ import redis
 from datetime import datetime
 
 # MQTT configuration
-MQTT_BROKER = "your_mqtt_broker_address"  # Replace with your MQTT broker IP
+MQTT_BROKER = "localhost"  # Replace with your MQTT broker IP
 MQTT_PORT = 1883
-MQTT_TOPIC = "sensor/temperature_humidity"  # Replace with your topic
+MQTT_TOPIC = "/reading/temp"  # Replace with your topic
 
 # Redis configuration
 REDIS_HOST = "localhost"
@@ -24,7 +24,6 @@ command = [
 ]
 
 def parse_message(message):
-    """Parses a string message like 'temperature:23.5,humidity:56.7'."""
     data = {}
     try:
         parts = message.split(",")
