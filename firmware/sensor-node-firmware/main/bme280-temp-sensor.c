@@ -1,4 +1,5 @@
 #include "i2c.h"
+#include "esp_log.h"
 #include "bme280-temp-sensor.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
@@ -102,7 +103,7 @@ void read_compensation_bme280(void)
 }
 
 // Function to get temperature and humidity readings from the BME280, they need to be together because temperature is used in calculating the RH
-void get_temp_and_humidity(temp_and_humidity_t *results)
+void get_temp_and_humidity(temp_and_humidity_t *readings)
 {
     // Starting address for temperature and humidity readings
     uint8_t write_buffer[1] = {0xF7};
@@ -125,10 +126,10 @@ void get_temp_and_humidity(temp_and_humidity_t *results)
     var2 = (((((temp_reading >> 4) - ((int32_t)dig_T1)) * ((temp_reading >> 4) - ((int32_t)dig_T1))) >> 12) * ((int32_t)dig_T3)) >> 14;
     t_fine = var1 + var2;
     // resolution is 0.01 DegC, so "1234" equals 12.34 DegC
-    results->temp_reading = (t_fine * 5 + 128) >> 8;
+    readings->temp_reading = (t_fine * 5 + 128) >> 8;
 
     //TODO: remove after testing
-    printf("Temp: %0.2f C\n", results->temp_reading/100.0);
+    printf("Temp: %0.2f C\n", readings->temp_reading/100.0);
 
     // Print humidity readings (for explaination, visit BME280 datasheet)
     int32_t humidity_reading = (read_buffer[6] << 8) | read_buffer[7];
@@ -141,9 +142,9 @@ void get_temp_and_humidity(temp_and_humidity_t *results)
     v_x1_u32r = (v_x1_u32r < 0 ? 0 : v_x1_u32r);
     v_x1_u32r = (v_x1_u32r > 419430400 ? 419430400 : v_x1_u32r);
     // Percent RH as unsigned 32 bit integer in Q22.10 format
-    results->humidity_reading = (uint32_t)(v_x1_u32r >> 12);
+    readings->humidity_reading = (uint32_t)(v_x1_u32r >> 12);
 
     //TODO: remove after testing
-    printf("Humidity: %0.2f %%\n", results->humidity_reading/1024.0);
+    printf("Humidity: %0.2f %%\n", readings->humidity_reading/1024.0);
 }
 

@@ -10,6 +10,7 @@
 #define I2C_PORT_AUTO -1
 
 #define BME_I2C_ADDRESS 0x77
+#define VEML_I2C_ADDRESS 0x10
 
 // Mutex to protect the I2C bus
 extern SemaphoreHandle_t i2c_mutex;
@@ -17,8 +18,10 @@ extern SemaphoreHandle_t i2c_mutex;
 // Define handles as Extern so they can be accessed within the sensor files
 extern i2c_master_bus_handle_t bus_handle;
 extern i2c_master_dev_handle_t bme_handle;
+extern i2c_master_dev_handle_t veml_handle;
 
 void init_i2c(void);
 void add_bme_i2c(void);
+void add_veml_i2c(void);
 
 #endif

@@ -8,6 +8,6 @@ typedef struct temp_and_humidity{
 
 void configure_bme280(void);
 void read_compensation_bme280(void);
-void get_temp_and_humidity(temp_and_humidity_t *results);
+void get_temp_and_humidity(temp_and_humidity_t *readings);
 
 #endif

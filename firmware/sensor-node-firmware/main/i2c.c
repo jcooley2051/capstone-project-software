@@ -7,6 +7,7 @@ i2c_master_bus_handle_t bus_handle;
 
 // Sensor device handles
 i2c_master_dev_handle_t bme_handle;
+i2c_master_dev_handle_t veml_handle;
 
 // Mutex for resource protection
 SemaphoreHandle_t i2c_mutex;
@@ -49,4 +50,16 @@ void add_bme_i2c(void)
     };
 
     ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &bme_cfg, &bme_handle));
+}
+
+// Adds the VEML7700 as a slave device on the I2C bus
+void add_veml_i2c(void)
+{
+    i2c_device_config_t veml_cfg = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = VEML_I2C_ADDRESS,
+        .scl_speed_hz = 100000,
+    };
+
+    ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &veml_cfg, &veml_handle));
 }
