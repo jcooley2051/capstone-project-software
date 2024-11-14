@@ -1,19 +1,10 @@
 import subprocess
-import redis
 from datetime import datetime
 
 # MQTT configuration
 MQTT_BROKER = "localhost"  # Replace with your MQTT broker IP
 MQTT_PORT = 1883
 MQTT_TOPIC = "/reading/temp"  # Replace with your topic
-
-# Redis configuration
-REDIS_HOST = "localhost"
-REDIS_PORT = 6379
-REDIS_DB = 0
-
-# Connect to Redis
-redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
 
 # Command to start mosquitto_sub and receive data
 command = [
@@ -36,7 +27,7 @@ def parse_message(message):
         return None
 
 try:
-    print("Listening for MQTT messages and storing data in Redis...")
+    print("Listening for MQTT messages...")
     # Start the subprocess to listen to the MQTT topic
     with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as proc:
         for line in proc.stdout:
@@ -49,11 +40,7 @@ try:
                 
                 if temperature is not None and humidity is not None:
                     timestamp = datetime.now().isoformat()
-                    data_key = f"sensor_data:{timestamp}"
-                    
-                    # Save to Redis
-                    redis_client.hset(data_key, mapping={"temperature": temperature, "humidity": humidity})
-                    print(f"Stored in Redis - Temperature: {temperature}°C, Humidity: {humidity}% (Key: {data_key})")
+                    print(f"Received Data - Temperature: {temperature}°C, Humidity: {humidity}% (Timestamp: {timestamp})")
                 else:
                     print("Parsed data missing temperature or humidity:", data)
             else:
