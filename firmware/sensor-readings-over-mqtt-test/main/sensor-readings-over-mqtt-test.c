@@ -309,12 +309,12 @@ void print_sensor_readings(uint8_t *readings)
     temp = (t_fine * 5 + 128) >> 8;
     printf("Temp: %0.2f C\n", temp/100.0);
     char message[50];
-    snprintf(message, sizeof(message), "Temperature %0.2f", temp / 100.0);
+    snprintf(message, sizeof(message), "%0.2f", temp / 100.0);
 
     printf("Publishing\n");
     // Publish the formatted temperature message to the MQTT broker
     esp_mqtt_client_publish(mqtt_client, "/readings/temp", message, 0, 1, 0);
-   // esp_mqtt_client_publish(mqtt_client, "/readings/temp", sprintf("Temperature %d", temp/100), 0, 1, 0);
+    // esp_mqtt_client_publish(mqtt_client, "/readings/temp", sprintf("Temperature %d", temp/100), 0, 1, 0);
 
 
     // Print humidity readings (for explaination, visit BME280 datasheet)
@@ -331,7 +331,7 @@ void print_sensor_readings(uint8_t *readings)
     // Percent RH as unsigned 32 bit integer in Q22.10 format
     humidity = (uint32_t)(v_x1_u32r >> 12);
     printf("Humidity: %0.2f %%\n", humidity/1024.0);
-    snprintf(message, sizeof(message), "Humidity %0.2f", humidity / 1024.0);
+    snprintf(message, sizeof(message), "%0.2f", humidity / 1024.0);
     esp_mqtt_client_publish(mqtt_client, "/readings/humidity", message, 0, 1, 0);
 }
 
@@ -359,7 +359,7 @@ void app_main(void)
 
     xSemaphoreTake(wifi_mqtt_semaphore, portMAX_DELAY);
     ESP_LOGI("SYSTEM", "Initializing MQTT");
-    
+
     // Initialize the MQTT driver and connect to the broker
     init_mqtt();
 
