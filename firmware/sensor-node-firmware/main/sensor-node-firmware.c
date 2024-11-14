@@ -1,12 +1,27 @@
 #include <stdio.h>
 #include "i2c.h"
+#include "wifi.h"
 #include "bme280-temp-sensor.h"
 #include "veml7700-light-sensor.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
 
 
 // Entry point for firmware //
 void app_main(void)
 {
+    // Initialize the NVS for WiFi credential flash storage
+    init_flash();
+
+    // Initialize WiFi driver and event handling
+    init_wifi();
+
+    // Configure WiFi settings and connect to network
+    config_wifi();
+
+    // Wait for the WiFi driver to start and connect to a network before starting MQTT broker
+    xSemaphoreTake(wifi_semaphore, portMAX_DELAY);
+
     // Initialize the I2C bus and mutex
     init_i2c();
 
