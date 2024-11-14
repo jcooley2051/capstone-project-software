@@ -6,6 +6,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "mqtt.h"
+#include "timer.h"
+#include "tasks.h"
 
 
 // Entry point for firmware //
@@ -47,13 +49,20 @@ void app_main(void)
     // Wait to connect to MQTT broker before starting tasks
     xSemaphoreTake(mqtt_semaphore, portMAX_DELAY);
 
-    //TODO: remove after testing
-    temp_and_humidity_t bne_readings;
-    light_readings_t veml_readings;
-    while(1)
+    // Start timer to manage task synchronization
+    init_timer();
+
+    // Create tasks to take sensor readings and send over MQTT
+    xTaskCreate(temp_and_humidity_readings, "Temp/Humidity Readings Task", 65536, NULL, 5, NULL);
+    xTaskCreate(light_readings, "Light Level Readings Task", 65536, NULL, 5, NULL);
+    xTaskCreate(mqtt_publish, "MQTT Publishing Task", 65536, NULL, 5, NULL);
+
+    // Start timer for tasks
+    xTimerStart(sensor_timer, 0);
+
+    while (1) 
     {
-        get_temp_and_humidity(&bne_readings);
-        get_light_level(&veml_readings);
-        vTaskDelay(250 / portTICK_PERIOD_MS);  // 250ms delay
+        // Pause app_main
+        vTaskDelay(portMAX_DELAY);
     }
 }
