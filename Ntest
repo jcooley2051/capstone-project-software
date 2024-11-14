@@ -1,0 +1,64 @@
+import subprocess
+import redis
+from datetime import datetime
+
+# MQTT configuration
+MQTT_BROKER = "localhost"  # Replace with your MQTT broker IP
+MQTT_PORT = 1883
+MQTT_TOPIC = "/reading/temp"  # Replace with your topic
+
+# Redis configuration
+REDIS_HOST = "localhost"
+REDIS_PORT = 6379
+REDIS_DB = 0
+
+# Connect to Redis
+redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
+
+# Command to start mosquitto_sub and receive data
+command = [
+    "mosquitto_sub",
+    "-h", MQTT_BROKER,
+    "-p", str(MQTT_PORT),
+    "-t", MQTT_TOPIC,
+]
+
+def parse_message(message):
+    data = {}
+    try:
+        parts = message.split(",")
+        for part in parts:
+            key, value = part.split(":")
+            data[key.strip()] = float(value.strip())
+        return data
+    except (ValueError, IndexError):
+        print(f"Failed to parse message: {message}")
+        return None
+
+try:
+    print("Listening for MQTT messages and storing data in Redis...")
+    # Start the subprocess to listen to the MQTT topic
+    with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as proc:
+        for line in proc.stdout:
+            line = line.strip()  # Remove any surrounding whitespace/newlines
+            data = parse_message(line)
+            
+            if data:
+                temperature = data.get("temperature")
+                humidity = data.get("humidity")
+                
+                if temperature is not None and humidity is not None:
+                    timestamp = datetime.now().isoformat()
+                    data_key = f"sensor_data:{timestamp}"
+                    
+                    # Save to Redis
+                    redis_client.hset(data_key, mapping={"temperature": temperature, "humidity": humidity})
+                    print(f"Stored in Redis - Temperature: {temperature}°C, Humidity: {humidity}% (Key: {data_key})")
+                else:
+                    print("Parsed data missing temperature or humidity:", data)
+            else:
+                print("Invalid data format received:", line)
+except KeyboardInterrupt:
+    print("\nStopped listening.")
+except Exception as e:
+    print(f"Error: {e}")
