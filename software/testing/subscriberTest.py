@@ -3,8 +3,8 @@ import json
 
 # MQTT configuration
 MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
-MQTT_TOPIC = "/reading/formatted"
+MQTT_PORT = 1337
+MQTT_TOPIC = "reading/formatted"
 
 # Function to listen to the MQTT topic using subprocess
 def listen_to_formatted_topic():

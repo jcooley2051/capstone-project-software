@@ -5,7 +5,7 @@ from threading import Thread, Lock
 
 # MQTT configuration
 MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
+MQTT_PORT = 1337
 
 # Dictionary to store temperature and humidity data
 data = {"temp": None, "humidity": None, "time": None}
@@ -20,7 +20,7 @@ def publish_to_mqtt(message):
         "mosquitto_pub",
         "-h", MQTT_BROKER,
         "-p", str(MQTT_PORT),
-        "-t", "/reading/formatted",
+        "-t", "reading/formatted",
         "-m", json.dumps(message)  # Publish as a JSON string
     ]
     subprocess.run(command)
@@ -73,8 +73,8 @@ def listen_to_topic(topic, key):
         print(f"Error in listening to topic {topic}: {e}")
 
 # Create threads to listen to each topic
-temperature_thread = Thread(target=listen_to_topic, args=("/reading/temp", "temp"))
-humidity_thread = Thread(target=listen_to_topic, args=("/reading/humidity", "humidity"))
+temperature_thread = Thread(target=listen_to_topic, args=("reading/temp", "temp"))
+humidity_thread = Thread(target=listen_to_topic, args=("reading/humidity", "humidity"))
 
 # Start both threads
 temperature_thread.start()
