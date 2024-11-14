@@ -48,7 +48,7 @@ void init_wifi(void)
 
     if (wifi_semaphore == NULL)
     {
-        ESP_LOGE("FreeRTOS", "Failed to initialize i2c mutex. Likely out of heap space");
+        ESP_LOGE("FreeRTOS", "Failed to initialize WiFi semaphore. Likely out of heap space");
         // Best chance of fixing this is just to reset the MCU
         abort();
     }

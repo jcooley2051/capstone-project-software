@@ -5,6 +5,7 @@
 #include "veml7700-light-sensor.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
+#include "mqtt.h"
 
 
 // Entry point for firmware //
@@ -21,6 +22,9 @@ void app_main(void)
 
     // Wait for the WiFi driver to start and connect to a network before starting MQTT broker
     xSemaphoreTake(wifi_semaphore, portMAX_DELAY);
+
+    // Initialize MQTT and connect to broker
+    init_mqtt();
 
     // Initialize the I2C bus and mutex
     init_i2c();
@@ -40,6 +44,9 @@ void app_main(void)
     // Configure the VEML now that it is added to the I2C bus
     configure_veml7700();
 
+    // Wait to connect to MQTT broker before starting tasks
+    xSemaphoreTake(mqtt_semaphore, portMAX_DELAY);
+
     //TODO: remove after testing
     temp_and_humidity_t bne_readings;
     light_readings_t veml_readings;
@@ -49,6 +56,4 @@ void app_main(void)
         get_light_level(&veml_readings);
         vTaskDelay(250 / portTICK_PERIOD_MS);  // 250ms delay
     }
-
-
 }
