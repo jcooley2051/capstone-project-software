@@ -5,8 +5,8 @@
 #include "freertos/semphr.h"
 
 // Wifi credentials, make better solution later
-#define WIFI_SSID ""
-#define WIFI_PASSWORD ""
+#define WIFI_SSID "Mojo Dojo Casa Home"
+#define WIFI_PASSWORD "BigFart123"
 
 #define WIFI_EVENT_TAG "WiFi Station:"
 
