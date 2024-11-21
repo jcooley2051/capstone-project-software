@@ -45,7 +45,7 @@ def listen_to_topic(topic, key):
                     # Update the corresponding key in the dictionary
                     with data_lock:  # Use the lock to ensure thread safety
                         data = json.loads(line)
-                        data["time"] = datetime.now()  # Update the timestamp
+                        data["time"] = datetime.now().isoformat()  # Update the timestamp
 
                     # Check if both temperature and humidity are updated
                     with data_lock:
