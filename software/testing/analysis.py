@@ -111,4 +111,68 @@ def analyze_and_process(temp, humid, timestamp):
         # Pull 30 seconds before and after the out-of-range timestamp
         context_measurements = [
             m for m in measurements_cache
-            if timestamp
+            if timestamp_dt - timedelta(seconds=30) <= parse_time(m['time']) <= timestamp_dt + timedelta(seconds=30)
+        ]
+
+        # Save context data with position
+        for context_measurement in context_measurements:
+            context_time = parse_time(context_measurement['time'])
+            if context_time < timestamp_dt:
+                position = "30 seconds before"
+            elif context_time > timestamp_dt:
+                position = "30 seconds after"
+            else:
+                position = "Exact moment"
+            save_context_data(context_measurement, f"Related to {timestamp}", position)
+
+    # Publish processed results
+    publish_to_mqtt(OUTPUT_TOPIC, measurement)
+
+# MQTT Listener for Combined Data
+def listen_to_topic_combined(topic):
+    command = [
+        "mosquitto_sub",
+        "-h", MQTT_BROKER,
+        "-p", str(MQTT_PORT),
+        "-t", topic
+    ]
+
+    try:
+        with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as proc:
+            for line in proc.stdout:
+                line = line.strip()
+                try:
+                    # Parse the JSON message
+                    message = json.loads(line)
+
+                    # Extract values
+                    temp = message.get("temperature")
+                    humidity = message.get("humidity")
+                    timestamp = message.get("time", format_time(datetime.now()))
+
+                    # Convert timestamp string back to datetime if necessary
+                    timestamp = parse_time(timestamp)
+
+                    if temp is None or humidity is None:
+                        print(f"Incomplete data received on topic '{topic}': {line}")
+                        continue
+
+                    # Process the combined data
+                    analyze_and_process(temp, humidity, format_time(timestamp))
+
+                except (ValueError, KeyError) as e:
+                    print(f"Invalid data received on topic '{topic}': {line}, Error: {e}")
+
+    except Exception as e:
+        print(f"Error in listening to topic {topic}: {e}")
+
+# Initialize CSVs
+initialize_csv()
+
+# Create and Start Thread for Listening to Combined Topic
+combined_thread = Thread(target=listen_to_topic_combined, args=(INPUT_TOPIC,))
+
+combined_thread.start()
+
+# Wait for the Thread to Finish
+combined_thread.join()
