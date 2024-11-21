@@ -119,10 +119,11 @@ def listen_to_topic_combined(topic):
                     # Parse the JSON message
                     message = json.loads(line)
 
-                    # Extract values
-                    temp = message["temp"]
+                    # Extract values 
+                    temp = message["temperature"]
                     humidity = message["humidity"]
-                    timestamp = message["time"]
+                    # Use the current time as the timestamp if not provided
+                    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
                     # Process the combined data
                     analyze_and_process(temp, humidity, timestamp)
