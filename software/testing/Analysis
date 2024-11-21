@@ -120,12 +120,12 @@ def listen_to_topic_combined(topic):
                     message = json.loads(line)
 
                     # Extract values
-                    temp = message["temp"]
+                    temp = message["temperature"]
                     humidity = message["humidity"]
                     timestamp = message["time"]
 
                     # Process the combined data
-                    analyze_and_process(temp, humidity, timestamp)
+                    analyze_and_process(temperature, humidity, timestamp)
 
                 except (ValueError, KeyError) as e:
                     print(f"Invalid data received on topic '{topic}': {line}, Error: {e}")
