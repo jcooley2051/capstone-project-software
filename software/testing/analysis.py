@@ -20,17 +20,9 @@ OUT_OF_RANGE_FILE = "out_of_range.csv"
 CONTEXT_FILE = "context_data.csv"  # New file for 30-second context data
 
 # Utility Functions for Time Handling
-def parse_time(time_str):
-    """Parse time string into a datetime object, with error handling."""
-    try:
-        return datetime.strptime(time_str, '%Y-%m-%d %H:%M:%S')
-    except ValueError:
-        print(f"Invalid time format: {time_str}. Using current time instead.")
-        return datetime.now()
-
-def format_time(dt_obj):
-    """Format a datetime object into the standard string format."""
-    return dt_obj.strftime('%Y-%m-%d %H:%M:%S')
+def get_current_time():
+    """Get current time as a string."""
+    return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 # Initialize CSV Files
 def initialize_csv():
@@ -66,18 +58,13 @@ def save_context_data(context_measurement, related_to, position):
 
 # Publish Data Over MQTT
 def publish_to_mqtt(topic, message):
-    # Convert any datetime objects in the message to strings
-    def serialize(obj):
-        if isinstance(obj, datetime):
-            return obj.strftime('%Y-%m-%d %H:%M:%S')  # ISO-like format
-        raise TypeError("Type not serializable")
-
+    # Serialize the message
     command = [
         "mosquitto_pub",
         "-h", MQTT_BROKER,
         "-p", str(MQTT_PORT),
         "-t", topic,
-        "-m", json.dumps(message, default=serialize)  # Use `default` to handle datetime
+        "-m", json.dumps(message)
     ]
     subprocess.run(command)
 
@@ -86,10 +73,6 @@ measurements_cache = []
 
 def analyze_and_process(temp, humid, timestamp):
     global measurements_cache
-
-    # Parse and format the timestamp
-    timestamp_dt = parse_time(timestamp)
-    timestamp = format_time(timestamp_dt)
 
     measurement = {"temp": temp, "humidity": humid, "time": timestamp}
     save_to_csv(measurement)
@@ -100,7 +83,7 @@ def analyze_and_process(temp, humid, timestamp):
     # Maintain only recent 60 seconds in the cache
     measurements_cache = [
         m for m in measurements_cache
-        if parse_time(m['time']) >= timestamp_dt - timedelta(seconds=60)
+        if m['time'] >= (datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S') - timedelta(seconds=60)).strftime('%Y-%m-%d %H:%M:%S')
     ]
 
     # Analysis for out-of-range values
@@ -109,17 +92,18 @@ def analyze_and_process(temp, humid, timestamp):
         save_out_of_range(measurement, context)
 
         # Pull 30 seconds before and after the out-of-range timestamp
+        out_of_range_time = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S')
         context_measurements = [
             m for m in measurements_cache
-            if timestamp_dt - timedelta(seconds=30) <= parse_time(m['time']) <= timestamp_dt + timedelta(seconds=30)
+            if (out_of_range_time - timedelta(seconds=30)).strftime('%Y-%m-%d %H:%M:%S') <= m['time'] <= (out_of_range_time + timedelta(seconds=30)).strftime('%Y-%m-%d %H:%M:%S')
         ]
 
         # Save context data with position
         for context_measurement in context_measurements:
-            context_time = parse_time(context_measurement['time'])
-            if context_time < timestamp_dt:
+            context_time = datetime.strptime(context_measurement['time'], '%Y-%m-%d %H:%M:%S')
+            if context_time < out_of_range_time:
                 position = "30 seconds before"
-            elif context_time > timestamp_dt:
+            elif context_time > out_of_range_time:
                 position = "30 seconds after"
             else:
                 position = "Exact moment"
@@ -148,17 +132,14 @@ def listen_to_topic_combined(topic):
                     # Extract values
                     temp = message.get("temperature")
                     humidity = message.get("humidity")
-                    timestamp = message.get("time", format_time(datetime.now()))
-
-                    # Convert timestamp string back to datetime if necessary
-                    timestamp = parse_time(timestamp)
+                    timestamp = message.get("time", get_current_time())
 
                     if temp is None or humidity is None:
                         print(f"Incomplete data received on topic '{topic}': {line}")
                         continue
 
                     # Process the combined data
-                    analyze_and_process(temp, humidity, format_time(timestamp))
+                    analyze_and_process(temp, humidity, timestamp)
 
                 except (ValueError, KeyError) as e:
                     print(f"Invalid data received on topic '{topic}': {line}, Error: {e}")
