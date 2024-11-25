@@ -3,13 +3,14 @@ from tkinter import ttk
 import json
 import subprocess
 from datetime import datetime
-from threading import Thread, Lock
 
-# Create "root" widget
-root = Tk()
-root.title('Hackerfab Monitoring System')
-# Create a content frame to hold all the widgets
-content = ttk.Frame(root)
+# MQTT configuration
+MQTT_BROKER = "localhost"
+MQTT_PORT = 1337
+INPUT_TOPIC = 'analysis/results'
+
+# Dictionary to store temperature and humidity data
+data = {"temperature": None, "humidity": None, "time": None}
 
 # Setup Variables for GUI
 # Toolbar vars
@@ -50,20 +51,7 @@ stringVars = {'toolbar': toolbar_vars, 'temp': temp_vars, 'humidity': humidity_v
               'partCount': partCount, 'ambientLight': ambientLight_vars, 
               'vibration': vibration_vars, 'status': status_vars}
 
-
-
-# MQTT configuration
-MQTT_BROKER = "localhost"
-MQTT_PORT = 1337
-INPUT_TOPIC = 'analysis/results'
-
-# Dictionary to store temperature and humidity data
-data = {"temperature": None, "humidity": None, "time": None}
-
-# Lock to ensure thread-safe updates to the data dictionary
-data_lock = Lock()
-
-def listen_to_topic(topic, key):
+def listen_to_topic(topic):
     """Function to listen to a specific MQTT topic and update the data dictionary."""
     print(f"Listening to topic: {topic}")  # Debugging statement to check if the function is called
     
@@ -78,31 +66,28 @@ def listen_to_topic(topic, key):
         with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as proc:
             for line in proc.stdout:
                 line = line.strip()
-                
                 try:
                     # Update the corresponding key in the dictionary
-                    with data_lock:  # Use the lock to ensure thread safety
-                        data = json.loads(line)
+                    data = json.loads(line)                        
 
                     # Check if both temperature and humidity are updated
-                    with data_lock:
-                        if data["temperature"] is not None and data["humidity"] is not None:
-                            # Print the temperature in Celsius and humidity
-                            # print(f"Temperature: {data['temp']}°C, Humidity: {data['humidity']}%, Time: {data['time'].strftime('%Y-%m-%d %H:%M:%S')}")
-                            # Prepare the data point to be displayed
-                            dPoint = {
+                    if data["temperature"] is not None and data["humidity"] is not None:
+                        # Print the temperature in Celsius and humidity
+                        # print(f"Temperature: {data['temp']}°C, Humidity: {data['humidity']}%, Time: {data['time'].strftime('%Y-%m-%d %H:%M:%S')}")
+                        # Prepare the data point to be displayed
+                        dPoint = {
                                 "temperature": data["temperature"],
                                 "humidity": data["humidity"],
                                 "time": data["time"]
-                            }
-                            # Display info from data point in GUI
-                            # Add main code to a method
-                            update_Vars(dPoint, stringVars)
-                            update_GUI()
+                                }
+                        # Display info from data point in GUI
+                        # Add main code to a method
+                        update_vars(dPoint, stringVars)
+                        update_GUI()
                             
                             
-                            # Reset data for next reading
-                            data["temperature"], data["humidity"] = None, None
+                        # Reset data for next reading
+                        data["temperature"], data["humidity"] = None, None
 
                 except ValueError:
                     print(f"Invalid data received on topic '{topic}': {line}")
@@ -110,11 +95,10 @@ def listen_to_topic(topic, key):
     except Exception as e:
         print(f"Error in listening to topic {topic}: {e}")
 
-
-def update_Vars(dPoint, stringVars):
+def update_vars(dPoint, stringVars):
     stringVars['toolbar']['temp'].set(dPoint['temperature'])
     stringVars['toolbar']['humidity'].set(dPoint['humidity'])
-    stringVars['toolbar']['time'].set(datetime.now().isoformat())
+    stringVars['toolbar']['time'].set(dPoint['time'])
     stringVars['toolbar']['date'].set(datetime.now().isoformat())
 
     stringVars['temp']['PL'].set(dPoint['temperature'])
@@ -137,8 +121,13 @@ def update_Vars(dPoint, stringVars):
     stringVars['status']['SC'].set('PLACEHOLDER')
     stringVars['status']['SP'].set('PLACEHOLDER')
 
-
 def update_GUI():
+    # Create "root" widget
+    root = Tk()
+    root.title('Hackerfab Monitoring System')
+    # Create a content frame to hold all the widgets
+    content = ttk.Frame(root)
+
     # Update content widgets
     # Toolbar Widgets
     toolbar_HFAB = ttk.Label(content, text='Hackerfab', relief='solid')
@@ -236,26 +225,7 @@ def update_GUI():
     content.rowconfigure(13, weight=1)
     content.rowconfigure(14, weight=1)
     content.rowconfigure(15, weight=1)
+    
+    root.mainloop()
 
-
-
-
-'''
-dPoint = {'temperature': '69°', 'humidity': '82%'}
-update_Vars(dPoint, stringVars)
-update_GUI()
-'''
-
-# Create threads to listen to each node
-node1_thread = Thread(target=listen_to_topic, args=(INPUT_TOPIC, "node1"))
-
-# Start both threads
-node1_thread.start()
-
-# Wait for both threads to finish
-node1_thread.join()
-
-
-root.mainloop()
-
-
+listen_to_topic(INPUT_TOPIC)
