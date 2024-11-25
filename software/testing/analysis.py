@@ -71,30 +71,28 @@ def publish_to_mqtt(topic, message):
 # Analyze and Process Data
 measurements_cache = []
 
-def analyze_and_process(temp, humid, timestamp):
+def analyze_and_process(measurement):
     global measurements_cache
 
-    # Create measurement
-    measurement = {"temperature": temp, "humidity": humid, "time": timestamp}
     save_to_csv(measurement)
 
     # Add to cache
     measurements_cache.append(measurement)
 
     # Maintain only recent 60 seconds in the cache
-    cutoff_time = datetime.fromisoformat(timestamp) - timedelta(seconds=60)
+    cutoff_time = datetime.fromisoformat(measurement['time']) - timedelta(seconds=60)
     measurements_cache = [
         m for m in measurements_cache
         if datetime.fromisoformat(m['time']) >= cutoff_time
     ]
 
     # Check for out-of-range values
-    if not (acceptable_temp_range[0] <= temp <= acceptable_temp_range[1]) or not (acceptable_humid_range[0] <= humid <= acceptable_humid_range[1]):
-        context = f"Out-of-range measurement at {timestamp}"
+    if not (acceptable_temp_range[0] <= measurement['temperature'] <= acceptable_temp_range[1]) or not (acceptable_humid_range[0] <= measurement['humidity'] <= acceptable_humid_range[1]):
+        context = f"Out-of-range measurement at {measurement['time']}"
         save_out_of_range(measurement, context)
 
         # Pull 30 seconds before and after the out-of-range timestamp
-        out_of_range_time = datetime.fromisoformat(timestamp)
+        out_of_range_time = datetime.fromisoformat(measurement['time'])
         context_measurements = [
             m for m in measurements_cache
             if out_of_range_time - timedelta(seconds=30) <= datetime.fromisoformat(m['time']) <= out_of_range_time + timedelta(seconds=30)
@@ -109,7 +107,7 @@ def analyze_and_process(temp, humid, timestamp):
                 position = "30 seconds after"
             else:
                 position = "Exact moment"
-            save_context_data(context_measurement, f"Related to {timestamp}", position)
+            save_context_data(context_measurement, f"Related to {measurement['time']}", position)
 
     # Publish processed results
     publish_to_mqtt(OUTPUT_TOPIC, measurement)
@@ -141,7 +139,7 @@ def listen_to_topic_combined(topic):
                         continue
 
                     # Process the combined data
-                    analyze_and_process(temp, humid, timestamp)
+                    analyze_and_process(message)
 
                 except (ValueError, KeyError) as e:
                     print(f"Invalid data received on topic '{topic}': {line}, Error: {e}")
