@@ -48,6 +48,7 @@ void mqtt_publish(void *arg)
         xMessageBufferReceive(temp_and_humidity_message_buffer, &bne_readings, sizeof(bne_readings), portMAX_DELAY);
         xMessageBufferReceive(light_message_buffer, &veml_readings, sizeof(veml_readings), portMAX_DELAY);
         snprintf(message, sizeof(message), "{ \"temperature\": %0.2f, \"humidity\": %0.2f, \"ambient_light\": %0.2f, \"white_light\": %0.2f}", bne_readings.temp_reading / 100.0, bne_readings.humidity_reading / 1024.0, veml_readings.als_reading, veml_readings.white_reading);
-        esp_mqtt_client_publish(mqtt_client, "/topic/test", message, 0, 1, 0);
+        esp_mqtt_client_publish(mqtt_client, "topic/test", message, 0, 1, 0);
+        printf("Reading Published\n");
     }
 }
