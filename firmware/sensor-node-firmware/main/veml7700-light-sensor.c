@@ -40,10 +40,10 @@ void get_light_level(light_readings_t *readings)
     readings->als_reading = reading * RESOLUTION;
     
     //TODO: Remove after testing
-    printf("ALS light Level: %0.2f lux\n", readings->als_reading);
+    //printf("ALS light Level: %0.2f lux\n", readings->als_reading);
     reading = (white_read_buffer[1] << 8) | white_read_buffer[0];
     readings->white_reading = reading * RESOLUTION;
 
     //TODO: Remove after testing
-    printf("White light Level: %0.2f lux\n", readings->white_reading);
+    //printf("White light Level: %0.2f lux\n", readings->white_reading);
 }

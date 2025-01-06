@@ -145,6 +145,6 @@ void get_temp_and_humidity(temp_and_humidity_t *readings)
     readings->humidity_reading = (uint32_t)(v_x1_u32r >> 12);
 
     //TODO: remove after testing
-    printf("Humidity: %0.2f %%\n", readings->humidity_reading/1024.0);
+    //printf("Humidity: %0.2f %%\n", readings->humidity_reading/1024.0);
 }
 
