@@ -3,30 +3,39 @@
 #include "esp_log.h"
 #include "driver/gpio.h"
 #include "esp_timer.h"
+//#include "esp_clk.h"
 
 #define PWM_INPUT_GPIO 18
 
 static uint64_t rising_edge_time = 0;
 static uint64_t falling_edge_time = 0;
 static uint64_t pulse_width = 0;
+static int last_level = 0;
+
+static uint64_t start_cycle = 0;
+static uint64_t end_cycle = 0;
+static uint64_t elapsed_cycles = 0;
+
+static bool new_measurement = false;
 
 // This function might be a bit long for an ISR
 void IRAM_ATTR gpio_18_isr(void* arg) {
-    static int last_level = 0;
+    start_cycle = xthal_get_ccount();
     int current_level = gpio_get_level(PWM_INPUT_GPIO);
 
     uint64_t current_time = esp_timer_get_time(); // Get current time in microseconds
 
-    if (current_level == 1 && last_level == 0) {
+    if (current_level == 1 && last_level == 0 && !new_measurement) {
         // Rising edge detected
         rising_edge_time = current_time;
     } 
     else if (current_level == 0 && last_level == 1) {
         // Falling edge detected
         falling_edge_time = current_time;
+        new_measurement = true;
     }
-
     last_level = current_level; // Update last level
+    end_cycle = xthal_get_ccount();
 }
 
 
@@ -46,8 +55,16 @@ void configure_gpio(void){
 void reading_task(void* arg){
     while(1){
         ESP_LOGI("Task", "In the readings Task");
-        pulse_width = falling_edge_time - rising_edge_time; // Calculate pulse width
-        printf("Concentration: %0.2f ug/m^3", (float)pulse_width/1000);
+        if (new_measurement){
+            pulse_width = falling_edge_time - rising_edge_time; // Calculate pulse width
+            new_measurement = false;
+        }
+        
+
+        elapsed_cycles = end_cycle-start_cycle;
+        printf("Runtime: %lld clock cycles\n", elapsed_cycles);
+        printf("Raw Concentration: %llu ug/m^3\n", pulse_width);
+        printf("Concentration: %0.2f ug/m^3\n", (float)pulse_width/1000);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
