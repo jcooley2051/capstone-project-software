@@ -98,9 +98,6 @@ void configure_bme280(void)
 // Reads compensation values from registers on the BME280
 void read_compensation_bme280(void)
 {
-    int retry_count = 0;
-    esp_err_t ret = ESP_OK;
-
     uint8_t write_buffer[1];
     uint8_t read_buffer[2];
 
@@ -112,18 +109,19 @@ void read_compensation_bme280(void)
     }
 
     // Read dig_T1
+    int retry_count = 0;
+    esp_err_t ret = ESP_OK;
     write_buffer[0] = 0x88;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        retry_count++;
         if (ret != ESP_OK)
         {
+            retry_count++;
             vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
         }
     } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
     
-    retry_count = 0;
     if (ret != ESP_OK)
     {
         ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_T1 from BME280");
@@ -133,18 +131,18 @@ void read_compensation_bme280(void)
     dig_T1 = (read_buffer[1] << 8) | read_buffer[0];
 
     // Read dig_T2
+    retry_count = 0;
     write_buffer[0] = 0x8A;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        retry_count++;
         if (ret != ESP_OK)
         {
+            retry_count++;
             vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
         }
     } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
     
-    retry_count = 0;
     if (ret != ESP_OK)
     {
         ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_T2 from BME280");
@@ -154,18 +152,18 @@ void read_compensation_bme280(void)
     dig_T2 = (read_buffer[1] << 8) | read_buffer[0];
 
     // Read dig_T3
+    retry_count = 0;
     write_buffer[0] = 0x8C;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        retry_count++;
         if (ret != ESP_OK)
         {
+            retry_count++;
             vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
         }
     } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
     
-    retry_count = 0;
     if (ret != ESP_OK)
     {
         ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_T3 from BME280");
@@ -175,18 +173,19 @@ void read_compensation_bme280(void)
     dig_T3 = (read_buffer[1] << 8) | read_buffer[0];  
 
     // Read dig_H1
+    retry_count = 0;
     write_buffer[0] = 0xA1;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1, portMAX_DELAY);
-        retry_count++;
         if (ret != ESP_OK)
         {
+            retry_count++;
             vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
         }
     } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
     
-    retry_count = 0;
+    
     if (ret != ESP_OK)
     {
         ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_H1 from BME280");
@@ -196,18 +195,18 @@ void read_compensation_bme280(void)
     dig_H1 = read_buffer[0];
 
     // Read dig_H2
+    retry_count = 0;
     write_buffer[0] = 0xE1;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        retry_count++;
         if (ret != ESP_OK)
         {
+            retry_count++;
             vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
         }
     } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
     
-    retry_count = 0;
     if (ret != ESP_OK)
     {
         ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_H2 from BME280");
@@ -217,18 +216,18 @@ void read_compensation_bme280(void)
     dig_H2 = (read_buffer[1] << 8) | read_buffer[0];
 
     // Read dig_H3
+    retry_count = 0;
     write_buffer[0] = 0xE3;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1, portMAX_DELAY);
-        retry_count++;
         if (ret != ESP_OK)
         {
+            retry_count++;
             vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
         }
     } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
     
-    retry_count = 0;
     if (ret != ESP_OK)
     {
         ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_H3 from BME280");
@@ -238,18 +237,18 @@ void read_compensation_bme280(void)
     dig_H3 = read_buffer[0];
 
     // Read dig_H4
+    retry_count = 0;
     write_buffer[0] = 0xE4;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        retry_count++;
         if (ret != ESP_OK)
         {
+            retry_count++;
             vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
         }
     } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
     
-    retry_count = 0;
     if (ret != ESP_OK)
     {
         ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_H4 from BME280");
@@ -259,18 +258,18 @@ void read_compensation_bme280(void)
     dig_H4 = (read_buffer[0] << 4) | (read_buffer[1] & 0xF);
 
     // Read dig_H5
+    retry_count = 0;
     write_buffer[0] = 0xE5;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        retry_count++;
         if (ret != ESP_OK)
         {
+            retry_count++;
             vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
         }
     } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
     
-    retry_count = 0;
     if (ret != ESP_OK)
     {
         ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_H5 from BME280");
@@ -280,13 +279,14 @@ void read_compensation_bme280(void)
     dig_H5 = (read_buffer[1] << 4) | ((read_buffer[0] & 0xF0) >> 4);
 
     // Read dig_H6
+    retry_count = 0;
     write_buffer[0] = 0xE7;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1, portMAX_DELAY);
-        retry_count++;
         if (ret != ESP_OK)
         {
+            retry_count++;
             vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
         }
     } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
