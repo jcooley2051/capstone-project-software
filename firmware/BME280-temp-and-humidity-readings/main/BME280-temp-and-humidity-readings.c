@@ -42,11 +42,7 @@ void init_i2c(void)
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = SENSOR_ADDRESS,
-        .scl_speed_hz = 400000,
-        .scl_wait_us = 30000,
-        .flags = {
-            .disable_ack_check = 0,
-        },
+        .scl_speed_hz = 100000,
     };
 
     ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config, &bus_handle));
@@ -153,7 +149,7 @@ void print_sensor_readings(uint8_t *readings)
     int32_t t_fine; // Fine temperature to use in humidity calculation
 
     // Print temperature readings (for explaination, visit BME280 datasheet)
-    int32_t temp_reading = (readings[3] << 12) | (readings[4] << 4) | (readings[5] & 0xF0 >> 4);
+    int32_t temp_reading = (readings[3] << 12) | (readings[4] << 4) | ((readings[5] & 0xF0) >> 4);
     int32_t var1, var2, temp;
     var1 = ((((temp_reading >> 3) - ((int32_t)dig_T1 << 1))) * ((int32_t)dig_T2)) >> 11;
     var2 = (((((temp_reading >> 4) - ((int32_t)dig_T1)) * ((temp_reading >> 4) - ((int32_t)dig_T1))) >> 12) * ((int32_t)dig_T3)) >> 14;
