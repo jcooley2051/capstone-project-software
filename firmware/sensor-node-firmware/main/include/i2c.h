@@ -16,6 +16,8 @@
 
 //Retry any failed transaction up to I2C_TRANSACTION_RETRY_COUNT times
 #define I2C_TRANSACTION_RETRY_COUNT 3
+// 50 ms delay between transmissions if failure
+#define I2C_TRANSMISSION_RETRY_DELAY 50
 
 //Retry any failed transaction up to I2C_SETUP_RETRY_COUNT times
 #define I2C_SETUP_RETRY_COUNT 3
@@ -25,6 +27,9 @@
 // I2C addresses for each sensor
 #define BME_I2C_ADDRESS 0x77
 #define VEML_I2C_ADDRESS 0x10
+
+// Clock for BME280, VEML7700 operates at 100kHz
+#define I2C_CLOCK_SPEED 100000
 
 // Mutex to protect the I2C bus
 extern SemaphoreHandle_t i2c_mutex;
