@@ -335,8 +335,8 @@ void get_temp_and_humidity(temp_and_humidity_t *readings)
 
     // If there is a failure in the reading, set a dummy value of (-500C, 150% humidity to be detected by analysis software)
     if (bme280_config_error == true || ret != ESP_OK) {
-        readings->temp_reading = -50000;
-        readings->humidity_reading = 150 * 1024;
+        readings->temp_reading = DUMMY_TEMP_READING;
+        readings->humidity_reading = DUMMY_HUMIDITY_READING;
         return;
     }
 

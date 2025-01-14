@@ -1,6 +1,10 @@
 #ifndef BME280_TEMP_SENSOR_H
 #define BME280_TEMP_SENSOR_H
 
+#define DUMMY_TEMP_READING (-50000)
+#define DUMMY_HUMIDITY_READING (150 * 1024)
+
+
 typedef struct temp_and_humidity{
     int32_t temp_reading;
     uint32_t humidity_reading;
