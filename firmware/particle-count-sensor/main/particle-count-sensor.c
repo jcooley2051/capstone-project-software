@@ -99,6 +99,7 @@ void app_main(void)
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "particle-count-sensor.h"
+#include "driver/gpio.h"
 
 #define UART_CONSOLE_TAG "UART"
 #define SYSTEM_CONSOLE_TAG "System"
@@ -136,6 +137,9 @@ void configure_sensor(void)
     // Send start measurement command: FE A5 00 11 B6
     uint8_t start_measurement_cmd[] = {0xFE, 0xA5, 0x00, 0x11, 0xB6};
     uart_write_bytes(UART_PORT, (const char *)start_measurement_cmd, sizeof(start_measurement_cmd));
+    gpio_set_drive_capability(TX_GPIO_PIN, GPIO_DRIVE_CAP_3);
+    gpio_set_drive_capability(RX_GPIO_PIN, GPIO_DRIVE_CAP_3);
+
     ESP_LOGI(UART_CONSOLE_TAG, "Sent start measurement command");
 }
 
