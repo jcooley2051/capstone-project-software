@@ -5,10 +5,24 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 
+#define I2C_CONSOLE_TAG "I2C"
+
+// Clock and Data pins for the I2C bus
 #define SCL_GPIO_PIN 6
 #define SDA_GPIO_PIN 5
+
+// Automatically select which I2C port to use
 #define I2C_PORT_AUTO -1
 
+//Retry any failed transaction up to I2C_TRANSACTION_RETRY_COUNT times
+#define I2C_TRANSACTION_RETRY_COUNT 3
+
+//Retry any failed transaction up to I2C_SETUP_RETRY_COUNT times
+#define I2C_SETUP_RETRY_COUNT 3
+// 100 ms delay between setup calls if failure
+#define I2C_SETUP_RETRY_DELAY 100
+
+// I2C addresses for each sensor
 #define BME_I2C_ADDRESS 0x77
 #define VEML_I2C_ADDRESS 0x10
 
@@ -20,8 +34,13 @@ extern i2c_master_bus_handle_t bus_handle;
 extern i2c_master_dev_handle_t bme_handle;
 extern i2c_master_dev_handle_t veml_handle;
 
+// Initialize the I2C bus
 void init_i2c(void);
+
+// Add the BME280 temperature and humidity sensor as a device on the I2C bus
 void add_bme_i2c(void);
+
+// Add the VEML7700 ambient light sensor as a device on the I2C bus
 void add_veml_i2c(void);
 
 #endif
