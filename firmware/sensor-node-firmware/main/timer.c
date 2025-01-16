@@ -13,8 +13,8 @@ void init_timer(void)
     // Create the event group
     sensor_event_group = xEventGroupCreate();
 
-    // Create the timer with 250ms interval
-    sensor_timer = xTimerCreate("Sensor Timer", pdMS_TO_TICKS(250), pdTRUE, 0, sensor_timer_callback);
+    // Create the timer
+    sensor_timer = xTimerCreate("Sensor Timer", pdMS_TO_TICKS(UPDATE_PERIOD_MS), pdTRUE, 0, sensor_timer_callback);
 }
 
 
