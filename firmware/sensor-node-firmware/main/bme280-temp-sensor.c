@@ -343,7 +343,7 @@ void get_temp_and_humidity(temp_and_humidity_t *readings)
     int32_t t_fine; // Fine temperature to use in humidity calculation
 
     // Print temperature readings (for explaination, visit BME280 datasheet)
-    int32_t temp_reading = (read_buffer[3] << 12) | (read_buffer[4] << 4) | (read_buffer[5] & 0xF0 >> 4);
+    int32_t temp_reading = (read_buffer[3] << 12) | (read_buffer[4] << 4) | ((read_buffer[5] & 0xF0) >> 4);
     int32_t var1, var2;
     var1 = ((((temp_reading >> 3) - ((int32_t)dig_T1 << 1))) * ((int32_t)dig_T2)) >> 11;
     var2 = (((((temp_reading >> 4) - ((int32_t)dig_T1)) * ((temp_reading >> 4) - ((int32_t)dig_T1))) >> 12) * ((int32_t)dig_T3)) >> 14;
