@@ -7,7 +7,7 @@
 
 
 // Number of connection retrys
-static int s_retry_num = 0;
+static int connection_retry_count = 0;
 
 // Semaphore used to hold off starting MQTT client until WiFi is connected
 SemaphoreHandle_t wifi_semaphore;
@@ -16,7 +16,8 @@ SemaphoreHandle_t wifi_semaphore;
 void init_flash(void)
 {
     esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) 
+    {
       ESP_ERROR_CHECK(nvs_flash_erase());
       ret = nvs_flash_init();
     }
@@ -24,16 +25,28 @@ void init_flash(void)
 }
 
 static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t event_id, void* event_data) {
-    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) {
+    if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_START) 
+    {
         esp_wifi_connect();
-    } else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) {
+    } 
+    else if (event_base == WIFI_EVENT && event_id == WIFI_EVENT_STA_DISCONNECTED) 
+    {
+        if (connection_retry_count > MAX_CONNECTION_RETRY_COUNT)
+        {
+            ESP_LOGE(WIFI_EVENT_TAG, "Too many failed connections, restarting device");
+            esp_restart();
+        }
         esp_wifi_connect();
         ESP_LOGI(WIFI_EVENT_TAG, "retry to connect to the AP");
-    } else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) {
+    } 
+    else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) 
+    {
         ip_event_got_ip_t* event = (ip_event_got_ip_t*) event_data;
         ESP_LOGI(WIFI_EVENT_TAG, "got ip:" IPSTR, IP2STR(&event->ip_info.ip));
+        // We are now ready to allow the rest of the software to progress
         xSemaphoreGive(wifi_semaphore);
-        s_retry_num = 0;
+        // We have successfully connected, so reset the connection retry counter
+        connection_retry_count = 0;
     }
 }
 

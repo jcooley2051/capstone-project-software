@@ -5,12 +5,12 @@
 #include "freertos/semphr.h"
 
 // Wifi credentials, make better solution later
-#define WIFI_SSID "Hackerfab Monitor"
+#define WIFI_SSID ""
 #define WIFI_PASSWORD ""
 
 #define WIFI_EVENT_TAG "WiFi Station:"
 
-#define MAX_RETRY_COUNT 10
+#define MAX_CONNECTION_RETRY_COUNT 10
 
 extern SemaphoreHandle_t wifi_semaphore;
 void init_flash(void);
