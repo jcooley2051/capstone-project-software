@@ -8,7 +8,7 @@ MQTT_BROKER = "localhost"
 MQTT_PORT = 1337
 
 # Dictionary to store temperature and humidity data
-data = {"temperature": None, "humidity": None, "time": None}
+data = {"temperature": None, "humidity": None, "ambient_light":None, "time": None}
 
 # Lock to ensure thread-safe updates to the data dictionary
 data_lock = Lock()
@@ -49,7 +49,7 @@ def listen_to_topic(topic, key):
 
                     # Check if both temperature and humidity are updated
                     with data_lock:
-                        if data["temperature"] is not None and data["humidity"] is not None:
+                        if data["temperature"] is not None and data["humidity"] is not None and data["ambient_light"] is not None:
                             # Print the temperature in Celsius and humidity
                             # print(f"Temperature: {data['temp']}°C, Humidity: {data['humidity']}%, Time: {data['time'].strftime('%Y-%m-%d %H:%M:%S')}")
                             
@@ -57,6 +57,7 @@ def listen_to_topic(topic, key):
                             message = {
                                 "temperature": data["temperature"],
                                 "humidity": data["humidity"],
+                                "ambient_light": data["ambient_light"],
                                 "time": data["time"]
                             }
 
@@ -64,7 +65,7 @@ def listen_to_topic(topic, key):
                             publish_to_mqtt(message)
                             
                             # Reset data for next reading
-                            data["temperature"], data["humidity"] = None, None
+                            data["temperature"], data["humidity"], data["ambient_light"] = None, None, None
 
                 except ValueError:
                     print(f"Invalid data received on topic '{topic}': {line}")
