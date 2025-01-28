@@ -1,4 +1,5 @@
-/*
+/* I2C does not seem to work. If you wanna give it a go be my guest, but after 10+ hours of attempting to diagnose the problem from teh 4 page user manual and useless forum posts I'm done
+
 #include <stdio.h>
 #include "esp_log.h"
 #include "driver/i2c_master.h"
@@ -41,10 +42,9 @@ void init_i2c(void)
 
 void configure_sensor(void)
 {
-    vTaskDelay(25 / portTICK_PERIOD_MS);
-    uint8_t unsleep_buffer[1] = {0xFF};
-    ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, unsleep_buffer, 6, portMAX_DELAY));
-    //vTaskDelay(500 / portTICK_PERIOD_MS);
+    uint8_t unsleep_buffer[4] = {0x00};
+    ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, unsleep_buffer, 1, portMAX_DELAY));
+    vTaskDelay(50 / portTICK_PERIOD_MS);
     uint8_t write_buffer[] = {0x10, 0x00, 0x10, 0x05, 0x00, 0xF6};
     ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buffer, 6, portMAX_DELAY));
     // Placeholder in case we decide to customize configuration
@@ -52,14 +52,16 @@ void configure_sensor(void)
 
 void sensor_readings_task(void *arg)
 {
-        uint8_t write_buffer[4] = {0x10, 0x03, 0x00, 0x11};
+        uint8_t write_buffer[3] = {0x10, 0x03, 0x00};
+        uint8_t write_buffer2[1] = {0x11};
     uint8_t read_buffer[30];
     
     while(1)
     {
         ESP_LOGI("VEML_CONSOLE_TAG", "Thing");
-        //ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, write_buffer, 4, read_buffer, 30, portMAX_DELAY));
-        ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buffer, 4, portMAX_DELAY));
+        ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buffer, 3, portMAX_DELAY));
+        ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, write_buffer2, 1, read_buffer, 30, portMAX_DELAY));
+        //ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buffer, 4, portMAX_DELAY));
         //print_sensor_reading(read_buffer);
         vTaskDelay(750 / portTICK_PERIOD_MS);  // 750ms delay (600ms refresh rate MAX)
     }
@@ -80,6 +82,8 @@ void app_main(void)
     init_i2c();
     ESP_LOGI(I2C_CONSOLE_TAG, "Successfullty Initialized I2C");
 
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
     // Configure VEML7700 ambient light sensor
     ESP_LOGI(VEML_CONSOLE_TAG, "Configuring Particle Count Sensor");
     configure_sensor();
@@ -92,6 +96,8 @@ void app_main(void)
 */
 
 // UART
+
+
 
 #include <stdio.h>
 #include "esp_log.h"
@@ -139,14 +145,15 @@ void configure_sensor(void)
     uart_write_bytes(UART_PORT, (const char *)start_measurement_cmd, sizeof(start_measurement_cmd));
     gpio_set_drive_capability(TX_GPIO_PIN, GPIO_DRIVE_CAP_3);
     gpio_set_drive_capability(RX_GPIO_PIN, GPIO_DRIVE_CAP_3);
-
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
     ESP_LOGI(UART_CONSOLE_TAG, "Sent start measurement command");
 }
 
 void sensor_readings_task(void *arg)
 {
-    uint8_t read_data_cmd[] = {0xFE, 0xA5, 0x00, 0x07, 0xA6};
-    uint8_t read_buffer[12];  // 12 bytes: Header + PM1.0, PM2.5, PM4.0, PM10 + Checksum
+    //uint8_t read_data_cmd[] = {0xFE, 0xA5, 0x00, 0x07, 0xA6};
+    uint8_t read_data_cmd[] = {0xFE, 0xA5, 0x00, 0x00, 0xA5};
+    uint8_t read_buffer[7];  // 12 bytes: Header + PM1.0, PM2.5, PM4.0, PM10 + Checksum
 
     while (1)
     {
@@ -155,10 +162,10 @@ void sensor_readings_task(void *arg)
 
         // Wait for the response (12 bytes expected)
         int length = uart_read_bytes(UART_PORT, read_buffer, sizeof(read_buffer), 100 / portTICK_PERIOD_MS);
-        if (length == 12)
+        if (length == 7)
         {
             // Validate response header and length
-            if (read_buffer[0] == 0xFE && read_buffer[1] == 0xA5 && read_buffer[2] == 0x08)
+            if (read_buffer[0] == 0xFE && read_buffer[1] == 0xA5 && read_buffer[2] == 0x02)
             {
                 print_sensor_reading(read_buffer);
             }
@@ -179,12 +186,8 @@ void sensor_readings_task(void *arg)
 
 void print_sensor_reading(uint8_t *read_buffer)
 {
-    uint16_t pm1_0 = (read_buffer[3] << 8) | read_buffer[4];
-    uint16_t pm2_5 = (read_buffer[5] << 8) | read_buffer[6];
-    uint16_t pm4_0 = (read_buffer[7] << 8) | read_buffer[8];
-    uint16_t pm10 = (read_buffer[9] << 8) | read_buffer[10];
-
-    printf("PM1.0: %d µg/m³, PM2.5: %d µg/m³, PM4.0: %d µg/m³, PM10: %d µg/m³\n", pm1_0, pm2_5, pm4_0, pm10);
+    int16_t pm2_5 = read_buffer[4]*256 + read_buffer[5];
+    printf("PM2.5: %d µg/m³\n", pm2_5);
 }
 
 void app_main(void)
