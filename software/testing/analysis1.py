@@ -11,51 +11,46 @@ OUTPUT_TOPIC = "analysis/results"
 INPUT_TOPIC = "reading/formatted"
 
 # Acceptable Ranges
-acceptable_temp_range = (18, 30)  # Example: 18°C to 30°C
-acceptable_humid_range = (30, 70)  # Example: 30% to 70%
+acceptable_temp_range = (18, 30)  # Range: 0°C to 50°C
+acceptable_humid_range = (30, 70)  # Range: 30% to 70%
+acceptable_light_range = (800, 1000)  # Range: Ambient light in lux
 
 # CSV Files
 CSV_FILE = "measurements.csv"
 OUT_OF_RANGE_FILE = "out_of_range.csv"
-CONTEXT_FILE = "context_data.csv"  # New file for 5-hour context data
+CONTEXT_FILE = "context.csv"
 
 # Initialize CSV Files
 def initialize_csv():
     with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Temperature (°C)", "Humidity (%)", "Timestamp"])
+        writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)", "Timestamp"])
 
     with open(OUT_OF_RANGE_FILE, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Temperature (°C)", "Humidity (%)", "Timestamp", "Context"])
+        writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)", "Timestamp", "Reason", "Context"])
 
     with open(CONTEXT_FILE, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Temperature (°C)", "Humidity (%)", "Timestamp", "Related To", "Position"])
+        writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)", "Timestamp", "Context Type"])
 
 # Save Measurement to CSV
 def save_to_csv(measurement):
     with open(CSV_FILE, mode='a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow([measurement['temperature'], measurement['humidity'], measurement['time']])
+        writer.writerow([measurement['temperature'], measurement['humidity'], measurement['ambient_light'], measurement['time']])
 
 # Save Out-of-Range Measurement
-def save_out_of_range(measurement, context):
+def save_out_of_range(measurement, reason, context):
     with open(OUT_OF_RANGE_FILE, mode='a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow([measurement['temperature'], measurement['humidity'], measurement['time'], context])
+        writer.writerow([measurement['temperature'], measurement['humidity'], measurement['ambient_light'], measurement['time'], reason, context])
 
 # Save Context Data
-def save_context_data(context_measurement, related_to, position):
+def save_context_data(measurement, context_type):
     with open(CONTEXT_FILE, mode='a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow([
-            context_measurement['temperature'], 
-            context_measurement['humidity'], 
-            context_measurement['time'], 
-            related_to, 
-            position
-        ])
+        writer.writerow([measurement['temperature'], measurement['humidity'], measurement['ambient_light'], measurement['time'], context_type])
 
 # Publish Data Over MQTT
 def publish_to_mqtt(topic, message):
@@ -87,25 +82,28 @@ def analyze_and_process(measurement):
     ]
 
     # Check for out-of-range values
-    if not (acceptable_temp_range[0] <= measurement['temperature'] <= acceptable_temp_range[1]) or not (acceptable_humid_range[0] <= measurement['humidity'] <= acceptable_humid_range[1]):
-        context = f"Out-of-range measurement at {measurement['time']}"
-        save_out_of_range(measurement, context)
+    reasons = []
+    if not (acceptable_temp_range[0] <= measurement['temperature'] <= acceptable_temp_range[1]):
+        reasons.append("Temperature out of range")
+    if not (acceptable_humid_range[0] <= measurement['humidity'] <= acceptable_humid_range[1]):
+        reasons.append("Humidity out of range")
+    if not (acceptable_light_range[0] <= measurement['ambient_light'] <= acceptable_light_range[1]):
+        reasons.append("Ambient light out of range")
 
-        # Pull 5 minutes before and after the out-of-range timestamp
+    if reasons:
+        context = "Surrounding error readings"
+        save_out_of_range(measurement, "; ".join(reasons), context)
+
+        # Find and save surrounding error context
         out_of_range_time = datetime.fromisoformat(measurement['time'])
         context_measurements = [
             m for m in measurements_cache
-            if out_of_range_time - timedelta(minutes=5) <= datetime.fromisoformat(m['time']) <= out_of_range_time + timedelta(minutes=5)
+            if abs((datetime.fromisoformat(m['time']) - out_of_range_time).total_seconds()) <= 300
         ]
 
-        # Save context data
         for context_measurement in context_measurements:
-            context_time = datetime.fromisoformat(context_measurement['time'])
-            if context_time == out_of_range_time:
-                position = "Exact"
-            else:
-                position = "Surrounding readings"
-            save_context_data(context_measurement, f"Related to {measurement['time']}", position)
+            context_type = "Exact moment" if context_measurement['time'] == measurement['time'] else "Surrounding"
+            save_context_data(context_measurement, context_type)
 
     # Publish processed results
     publish_to_mqtt(OUTPUT_TOPIC, measurement)
@@ -130,9 +128,10 @@ def listen_to_topic_combined(topic):
                     # Extract values
                     temp = message.get("temperature")
                     humid = message.get("humidity")
+                    light = message.get("ambient_light")
                     timestamp = message.get("time")
 
-                    if temp is None or humid is None or timestamp is None:
+                    if temp is None or humid is None or light is None or timestamp is None:
                         print(f"Incomplete data received on topic '{topic}': {line}")
                         continue
 
