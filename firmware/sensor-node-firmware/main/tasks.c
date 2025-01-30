@@ -27,6 +27,7 @@ void temp_and_humidity_readings(void *arg)
     while(1)
     {
         xEventGroupWaitBits(sensor_event_group, SENSOR_EVENT_BIT_0, pdTRUE, pdFALSE, portMAX_DELAY);
+        ESP_LOGI("temp_and_humidity_readings", "Getting temp and humidity reading");
         get_temp_and_humidity(&bne_readings);
         xMessageBufferSend(temp_and_humidity_message_buffer, &bne_readings, sizeof(bne_readings), portMAX_DELAY);
     }
@@ -39,6 +40,8 @@ void light_readings(void *arg)
     while(1)
     {
         xEventGroupWaitBits(sensor_event_group, SENSOR_EVENT_BIT_1, pdTRUE, pdFALSE, portMAX_DELAY);
+        ESP_LOGI("light_readings", "Getting light reading");
+        ESP_LOGI("temp_and_humidity_readings", "Getting temp and humidity reading");
         get_light_level(&veml_readings);
         xMessageBufferSend(light_message_buffer, &veml_readings, sizeof(veml_readings), portMAX_DELAY);
     }
@@ -50,7 +53,9 @@ void particle_count_readings(void *arg)
     particle_count_message_buffer = xMessageBufferCreate(REGULAR_MESSAGE_BUFFER_SIZE);  // Adjust buffer size as needed
     while(1)
     {
+        ESP_LOGI("mqtt_publish", "Reading Published");
         xEventGroupWaitBits(sensor_event_group, SENSOR_EVENT_BIT_2, pdTRUE, pdFALSE, portMAX_DELAY);
+        ESP_LOGI("particle_count_readings", "Getting particle count reading");
         get_particle_count(&reading);
         xMessageBufferSend(particle_count_message_buffer, &reading, sizeof(reading), portMAX_DELAY);
     }
@@ -100,6 +105,6 @@ void mqtt_publish(void *arg)
             ESP_LOGE("mqtt_publish", "Error: We are getting lots of errors, rebooting...");
             esp_restart();
         }
-        printf("Reading Published\n");
+        ESP_LOGI("mqtt_publish", "Reading Published");
     }
 }
