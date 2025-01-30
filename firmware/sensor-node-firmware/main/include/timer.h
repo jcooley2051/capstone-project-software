@@ -11,12 +11,10 @@ extern TimerHandle_t sensor_timer;
 // How often to trigger readings
 #define UPDATE_PERIOD_MS 1000
 
-// How often to reset error counter
-#define RESET_ERROR_COUNTER_PERIOD_S 100000
-
 // Event bit mask (one bit per task)
 #define SENSOR_EVENT_BIT_0 (1 << 0)
 #define SENSOR_EVENT_BIT_1 (1 << 1)
+#define SENSOR_EVENT_BIT_2 (1 << 2)
 
 void sensor_timer_callback(TimerHandle_t xTimer);
 void init_timer(void);
