@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "i2c.h"
+#include "uart.h"
 #include "wifi.h"
 #include "bme280-temp-sensor.h"
 #include "veml7700-light-sensor.h"
@@ -46,6 +47,9 @@ void app_main(void)
     // Configure the VEML now that it is added to the I2C bus
     configure_veml7700();
 
+    // Initialize the UART peripheral
+    init_uart();
+
     // Wait to connect to MQTT broker before starting tasks
     xSemaphoreTake(mqtt_semaphore, portMAX_DELAY);
 
@@ -55,6 +59,7 @@ void app_main(void)
     // Create tasks to take sensor readings and send over MQTT
     xTaskCreate(temp_and_humidity_readings, "Temp/Humidity Readings Task", 65536, NULL, 5, NULL);
     xTaskCreate(light_readings, "Light Level Readings Task", 65536, NULL, 5, NULL);
+    xTaskCreate(particle_count_readings, "Particle Count Readings Task", 65536, NULL, 5, NULL);
     xTaskCreate(mqtt_publish, "MQTT Publishing Task", 65536, NULL, 5, NULL);
 
     // Start timer for tasks
