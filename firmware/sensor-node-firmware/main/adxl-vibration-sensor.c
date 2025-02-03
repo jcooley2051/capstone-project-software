@@ -43,7 +43,7 @@ void configure_adxl(void)
         {
             vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
         }
-    } while(ret != ESP_OK && retry_count < I2C_SETUP_RETRY_COUNT)
+    } while(ret != ESP_OK && retry_count < I2C_SETUP_RETRY_COUNT);
     if (ret != ESP_OK)
     {
         ESP_LOGE("configure_adxl", "Failed configuring setup time and filter for BME280");
