@@ -14,7 +14,7 @@ void configure_veml7700(void)
     // Take ownership of I2C bus
     if (xSemaphoreTake(i2c_mutex, portMAX_DELAY) != pdTRUE)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to take i2c mutex");
+        ESP_LOGE("configure_veml7700", "Failed to take i2c mutex");
         abort();
     }
 
@@ -34,7 +34,7 @@ void configure_veml7700(void)
     // Release bus
     if (xSemaphoreGive(i2c_mutex) != pdTRUE)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to give i2c mutex");
+        ESP_LOGE("configure_veml7700", "Failed to give i2c mutex");
         abort();
     }
 }
@@ -48,7 +48,7 @@ void get_light_level(light_readings_t *readings)
     // Take ownership of I2C bus
     if (xSemaphoreTake(i2c_mutex, portMAX_DELAY) != pdTRUE)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to take i2c mutex");
+        ESP_LOGE("get_light_level", "Failed to take i2c mutex");
         abort();
     }
 
@@ -82,7 +82,7 @@ void get_light_level(light_readings_t *readings)
     // Release bus
     if (xSemaphoreGive(i2c_mutex) != pdTRUE)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to give i2c mutex");
+        ESP_LOGE("get_light_level", "Failed to give i2c mutex");
         abort();
     }
 

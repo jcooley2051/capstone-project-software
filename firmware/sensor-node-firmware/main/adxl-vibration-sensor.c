@@ -5,20 +5,68 @@
 #include "freertos/semphr.h"
 
 
+static bool adxl_config_error = false;
+
+
 void configure_adxl(void)
 {
+    esp_err_t ret = ESP_OK;
+
     uint8_t write_buffer[2];
     write_buffer[0] = 0x2D;
     write_buffer[1] = 0x92;
-    ESP_ERROR_CHECK(i2c_master_transmit(adxl_handle, write_buffer, 2, portMAX_DELAY));
+    int retry_count = 0;
+    do
+    {
+        ret = i2c_master_transmit(adxl_handle, write_buffer, sizeof(write_buffer), portMAX_DELAY);
+        retry_count++;
+        if (ret != ESP_OK)
+        {
+            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
+        }
+    } while(ret != ESP_OK && retry_count < I2C_SETUP_RETRY_COUNT);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE("configure_adxl", "Failed configuring setup time and filter for BME280");
+        adxl_config_error = true;
+    }
+
 
     write_buffer[0] = 0x28;
     write_buffer[1] = 0x01;
-    ESP_ERROR_CHECK(i2c_master_transmit(adxl_handle, write_buffer, 2, portMAX_DELAY));
+    retry_count = 0;
+    do
+    {
+        ret = i2c_master_transmit(adxl_handle, write_buffer, sizeof(write_buffer), portMAX_DELAY);
+        retry_count++;
+        if (ret != ESP_OK)
+        {
+            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
+        }
+    } while(ret != ESP_OK && retry_count < I2C_SETUP_RETRY_COUNT)
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE("configure_adxl", "Failed configuring setup time and filter for BME280");
+        adxl_config_error = true;
+    }
 
     write_buffer[0] = 0x2C;
     write_buffer[1] = 0x01;
-    ESP_ERROR_CHECK(i2c_master_transmit(adxl_handle, write_buffer, 2, portMAX_DELAY));
+    retry_count = 0;
+    do
+    {
+        ret = i2c_master_transmit(adxl_handle, write_buffer, sizeof(write_buffer), portMAX_DELAY);
+        retry_count++;
+        if (ret != ESP_OK)
+        {
+            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
+        }
+    } while(ret != ESP_OK && retry_count < I2C_SETUP_RETRY_COUNT);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE("configure_adxl", "Failed configuring setup time and filter for BME280");
+        adxl_config_error = true;
+    }
     // Placeholder in case we decide to customize configuration
 }
 
@@ -32,7 +80,7 @@ void get_vibration_readings(uint8_t *readings)
     int i = 0;
     if (xSemaphoreTake(i2c_mutex, portMAX_DELAY) != pdTRUE)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to take adxl i2c mutex");
+        ESP_LOGE("get_vibration_readings", "Failed to take adxl i2c mutex");
         abort();
     }
     TickType_t last_wake_time = xTaskGetTickCount();
@@ -46,7 +94,7 @@ void get_vibration_readings(uint8_t *readings)
         i += 9;
         count++;
     }
-    if (ret != ESP_OK)
+    if (adxl_config_error || ret != ESP_OK)
     {
         for(int i = 0; i < ADXL_NUM_READINGS*ADXL_READING_SIZE_BYTES; i++)
         {

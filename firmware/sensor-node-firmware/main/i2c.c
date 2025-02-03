@@ -53,7 +53,7 @@ void init_i2c(void)
 
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to create i2c master bus");
+        ESP_LOGE("init_i2c", "Failed to create i2c master bus");
         abort();
     }
 
@@ -71,7 +71,7 @@ void init_i2c(void)
 
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to create adxl i2c master bus");
+        ESP_LOGE("init_i2c", "Failed to create adxl i2c master bus");
         abort();
     }
 
@@ -88,7 +88,7 @@ void init_i2c(void)
 
     if (i2c_mutex == NULL)
     {
-        ESP_LOGE("FreeRTOS", "Failed to initialize i2c mutex. Likely out of heap space");
+        ESP_LOGE("init_i2c", "Failed to initialize i2c mutex. Likely out of heap space");
         // Best chance of fixing this is just to reset the MCU
         abort();
     }
@@ -106,7 +106,7 @@ void init_i2c(void)
 
     if (adxl_i2c_mutex == NULL)
     {
-        ESP_LOGE("FreeRTOS", "Failed to initialize i2c mutex. Likely out of heap space");
+        ESP_LOGE("init_i2c", "Failed to initialize i2c mutex. Likely out of heap space");
         // Best chance of fixing this is just to reset the MCU
         abort();
     }
@@ -141,7 +141,7 @@ void add_bme_i2c(void)
 
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to add BME280 to I2C bus");
+        ESP_LOGE("add_bme_i2c", "Failed to add BME280 to I2C bus");
         abort();
     }
 }
@@ -170,7 +170,7 @@ void add_veml_i2c(void)
 
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to add VEML7700 to I2C bus");
+        ESP_LOGE("add_veml_i2c", "Failed to add VEML7700 to I2C bus");
         abort();
     }
 }
@@ -198,7 +198,7 @@ void add_adxl_i2c(void)
 
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to add ADXL to I2C bus");
+        ESP_LOGE("add_adxl_i2c", "Failed to add ADXL to I2C bus");
         abort();
     }
 }
