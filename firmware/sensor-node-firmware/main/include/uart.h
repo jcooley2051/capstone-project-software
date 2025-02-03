@@ -33,6 +33,7 @@
 // Mutex to protect the UART
 extern SemaphoreHandle_t uart_mutex;
 
+/* Initialize the UART peripheral for communication with the particle count sensor */
 void init_uart(void);
 
 

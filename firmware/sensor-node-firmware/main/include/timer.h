@@ -19,7 +19,13 @@ extern TimerHandle_t sensor_timer;
 #define EVENT_BIT_DONE_LIGHT (1 << 4)
 #define EVENT_BIT_DONE_PARTICLE (1 << 5)
 
+/* Callback function for timer event. Triggered every second.
+    Resets event group to signal to sensors to take a reading
+    Parameters:
+    xTimer: handle for a freeRTOS software timer    
+*/
 void sensor_timer_callback(TimerHandle_t xTimer);
+/* Initializes the freeRTOS software timer */
 void init_timer(void);
 
 #endif

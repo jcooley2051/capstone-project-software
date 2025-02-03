@@ -47,16 +47,16 @@ extern i2c_master_dev_handle_t veml_handle;
 extern i2c_master_bus_handle_t adxl_bus_handle;
 extern i2c_master_dev_handle_t adxl_handle;
 
-// Initialize the I2C buses
+/* Initialize the I2C buses */
 void init_i2c(void);
 
-// Add the BME280 temperature and humidity sensor as a device on the I2C bus
+/* Add the BME280 temperature and humidity sensor as a device on the I2C bus */
 void add_bme_i2c(void);
 
-// Add the VEML7700 ambient light sensor as a device on the I2C bus
+/* Add the VEML7700 ambient light sensor as a device on the I2C bus */
 void add_veml_i2c(void);
 
-// Add the adxl to the I2C bus
+/* Add the adxl vibration sensor as a device on the I2C bus */
 void add_adxl_i2c(void);
 
 #endif
