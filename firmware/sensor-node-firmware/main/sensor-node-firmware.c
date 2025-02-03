@@ -29,23 +29,20 @@ void app_main(void)
     // Initialize MQTT and connect to broker
     init_mqtt();
 
-    // Initialize the I2C bus and mutex
+    // Initialize the I2C buses and mutexes
     init_i2c();
 
-    // Add BME280 temperature and humidity sensor to I2C bus
+    // Add BME280 temperature and humidity sensor to I2C bus and configure
     add_bme_i2c();
-
-    // Configure the BME now that it is added to the I2C bus
     configure_bme280();
-
-    // Read the compensation values for the BME280
     read_compensation_bme280();
 
-    // Add VEML7700 light sensor to I2C bus
+    // Add VEML7700 light sensor to I2C bus and configure
     add_veml_i2c();
-
-    // Configure the VEML now that it is added to the I2C bus
     configure_veml7700();
+
+    // Add ADXL acceleartion sensor to the I2C bus
+    add_adxl_i2c();
 
     // Initialize the UART peripheral
     init_uart();
@@ -60,6 +57,7 @@ void app_main(void)
     xTaskCreate(temp_and_humidity_readings, "Temp/Humidity Readings Task", 65536, NULL, 5, NULL);
     xTaskCreate(light_readings, "Light Level Readings Task", 65536, NULL, 5, NULL);
     xTaskCreate(particle_count_readings, "Particle Count Readings Task", 65536, NULL, 5, NULL);
+    xTaskCreate(vibration_readings, "Particle Count Readings Task", 65536, NULL, 5, NULL);
     xTaskCreate(mqtt_publish, "MQTT Publishing Task", 65536, NULL, 5, NULL);
 
     // Start timer for tasks

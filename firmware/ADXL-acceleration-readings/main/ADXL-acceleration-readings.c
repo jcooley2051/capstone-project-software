@@ -64,7 +64,7 @@ void veml_readings_task(void *arg)
     uint8_t read_buffer[9*500];
     // One extra for the null terminator
     char mqtt_buffer[9*500*2 + 1];
-    const TickType_t period_ticks = pdMS_TO_TICKS(2); // 1.25 ms in ticks
+    const TickType_t period_ticks = pdMS_TO_TICKS(2); // 2 ms in ticks
     const TickType_t period_ticks2 = pdMS_TO_TICKS(1000); // 1.25 ms in ticks
     TickType_t last_wake_time = xTaskGetTickCount();      // Initialize last wake time
     TickType_t last_wake_time2 = xTaskGetTickCount();   
