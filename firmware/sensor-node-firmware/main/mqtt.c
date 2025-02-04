@@ -19,6 +19,7 @@ static void mqtt_event_handler(void* handler_args, esp_event_base_t base, int32_
             break;
         case MQTT_EVENT_DISCONNECTED:
             ESP_LOGI(MQTT_TAG, "MQTT_EVENT_DISCONNECTED");
+            esp_mqtt_client_reconnect(client);
             break;
         default:
             break;
