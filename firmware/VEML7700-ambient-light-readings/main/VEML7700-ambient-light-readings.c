@@ -13,7 +13,8 @@
 #define I2C_PORT_AUTO -1
 #define SENSOR_ADDRESS 0x10
 
-#define RESOLUTION 0.0168f
+//#define RESOLUTION 0.0168f
+#define RESOLUTION 0.0336f
 
 // I2C handles
 i2c_master_bus_handle_t bus_handle;
@@ -34,10 +35,6 @@ void init_i2c(void)
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = SENSOR_ADDRESS,
         .scl_speed_hz = 400000,
-        .scl_wait_us = 30000,
-        .flags = {
-            .disable_ack_check = 0,
-        },
     };
 
     ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config, &bus_handle));
@@ -48,7 +45,7 @@ void configure_veml7700(void)
 {
     uint8_t write_buffer[3];
     write_buffer[0] = 0x00;
-    write_buffer[1] = 0x00;
+    write_buffer[1] = 0x10;
     write_buffer[2] = 0x00;
     ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buffer, 3, portMAX_DELAY));
     // Placeholder in case we decide to customize configuration

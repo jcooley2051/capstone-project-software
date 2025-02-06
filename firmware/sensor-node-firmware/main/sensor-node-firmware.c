@@ -4,6 +4,7 @@
 #include "wifi.h"
 #include "bme280-temp-sensor.h"
 #include "veml7700-light-sensor.h"
+#include "adxl-vibration-sensor.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
 #include "mqtt.h"
@@ -43,6 +44,7 @@ void app_main(void)
 
     // Add ADXL acceleartion sensor to the I2C bus
     add_adxl_i2c();
+    configure_adxl();
 
     // Initialize the UART peripheral
     init_uart();
@@ -54,10 +56,10 @@ void app_main(void)
     init_timer();
 
     // Create tasks to take sensor readings and send over MQTT
-    xTaskCreate(temp_and_humidity_readings, "Temp/Humidity Readings Task", 65536, NULL, 5, NULL);
-    xTaskCreate(light_readings, "Light Level Readings Task", 65536, NULL, 5, NULL);
-    xTaskCreate(particle_count_readings, "Particle Count Readings Task", 65536, NULL, 5, NULL);
-    xTaskCreate(vibration_readings, "Particle Count Readings Task", 65536, NULL, 5, NULL);
+    xTaskCreate(temp_and_humidity_readings, "Temp/Humidity Readings Task", 8192, NULL, 5, NULL);
+    xTaskCreate(light_readings, "Light Level Readings Task", 8192, NULL, 5, NULL);
+    xTaskCreate(particle_count_readings, "Particle Count Readings Task", 8192, NULL, 5, NULL);
+    xTaskCreate(vibration_readings, "Vibration Readings Task", 65536, NULL, 5, NULL);
     xTaskCreate(mqtt_publish, "MQTT Publishing Task", 65536, NULL, 5, NULL);
 
     // Start timer for tasks

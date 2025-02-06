@@ -78,7 +78,7 @@ void get_vibration_readings(uint8_t *readings)
     const TickType_t period_ticks = pdMS_TO_TICKS(1000 / ADXL_SAMPLE_RATE);
     int count = 0;
     int i = 0;
-    if (xSemaphoreTake(i2c_mutex, portMAX_DELAY) != pdTRUE)
+    if (xSemaphoreTake(adxl_i2c_mutex, portMAX_DELAY) != pdTRUE)
     {
         ESP_LOGE("get_vibration_readings", "Failed to take adxl i2c mutex");
         abort();

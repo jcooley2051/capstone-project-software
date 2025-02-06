@@ -11,8 +11,8 @@
 #define SCL_GPIO_PIN 6
 #define SDA_GPIO_PIN 5
 
-#define ADXL_SCL_GPIO_PIN 36
-#define ADXL_SDA_GPIO_PIN 37
+#define ADXL_SCL_GPIO_PIN 9
+#define ADXL_SDA_GPIO_PIN 10
 
 // Automatically select which I2C port to use
 #define I2C_PORT_AUTO -1

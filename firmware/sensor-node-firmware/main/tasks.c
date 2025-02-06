@@ -13,6 +13,7 @@
 
 
 #define REGULAR_MESSAGE_BUFFER_SIZE 256
+#define LARGE_MESSAGE_BUFFER_SIZE 9500
 
 MessageBufferHandle_t temp_and_humidity_message_buffer;
 MessageBufferHandle_t light_message_buffer;
@@ -32,9 +33,9 @@ void temp_and_humidity_readings(void *arg)
         xEventGroupWaitBits(sensor_event_group, EVENT_BIT_READY_TEMP, pdTRUE, pdFALSE, portMAX_DELAY);
         ESP_LOGI("temp_and_humidity_readings", "Getting temp and humidity reading");
         get_temp_and_humidity(&bne_readings);
-        xMessageBufferSend(temp_and_humidity_message_buffer, &bne_readings, sizeof(bne_readings), portMAX_DELAY);
         // Signal to the vibration task that we are finished reading the temperature and humidity
         xEventGroupSetBits(sensor_event_group, EVENT_BIT_DONE_TEMP);
+        xMessageBufferSend(temp_and_humidity_message_buffer, &bne_readings, sizeof(bne_readings), portMAX_DELAY);
     }
 }
 
@@ -48,9 +49,9 @@ void light_readings(void *arg)
         xEventGroupWaitBits(sensor_event_group, EVENT_BIT_READY_LIGHT, pdTRUE, pdFALSE, portMAX_DELAY);
         ESP_LOGI("light_readings", "Getting light reading");
         get_light_level(&veml_readings);
-        xMessageBufferSend(light_message_buffer, &veml_readings, sizeof(veml_readings), portMAX_DELAY);
         // Signal to the vibration task that we are finished reading light
         xEventGroupSetBits(sensor_event_group, EVENT_BIT_DONE_LIGHT);
+        xMessageBufferSend(light_message_buffer, &veml_readings, sizeof(veml_readings), portMAX_DELAY);
     }
 }
 
@@ -64,9 +65,9 @@ void particle_count_readings(void *arg)
         xEventGroupWaitBits(sensor_event_group, EVENT_BIT_READY_PARTICLE, pdTRUE, pdFALSE, portMAX_DELAY);
         ESP_LOGI("particle_count_readings", "Getting particle count reading");
         get_particle_count(&reading);
-        xMessageBufferSend(particle_count_message_buffer, &reading, sizeof(reading), portMAX_DELAY);
         // Signal to vibration task that we are finished reading the particle count
         xEventGroupSetBits(sensor_event_group, EVENT_BIT_DONE_PARTICLE);
+        xMessageBufferSend(particle_count_message_buffer, &reading, sizeof(reading), portMAX_DELAY);
     }
 }
 
@@ -75,10 +76,12 @@ void vibration_readings(void *arg)
     uint8_t read_buffer[ADXL_READING_SIZE_BYTES * ADXL_NUM_READINGS];
     // One extra for the null terminator
     char hex_buffer[ADXL_READING_SIZE_BYTES * ADXL_NUM_READINGS * 2 + 1];
+    vibration_message_buffer = xMessageBufferCreate(LARGE_MESSAGE_BUFFER_SIZE);  // Adjust buffer size as needed
     while(1)
     {
         // Wait for all other tasks to complete their readings so that we can get an uninterrupted run of the vibration readings 
-        xEventGroupWaitBits(sensor_event_group, EVENT_BIT_DONE_TEMP | EVENT_BIT_DONE_TEMP | EVENT_BIT_DONE_PARTICLE, pdTRUE, pdTRUE, portMAX_DELAY);
+        xEventGroupWaitBits(sensor_event_group, EVENT_BIT_DONE_TEMP | EVENT_BIT_DONE_LIGHT | EVENT_BIT_DONE_PARTICLE, pdTRUE, pdTRUE, portMAX_DELAY);
+        ESP_LOGI("vibration_readings", "Getting vibration reading");
         get_vibration_readings(read_buffer);
         encode_to_hex(read_buffer, sizeof(read_buffer), hex_buffer);
         xMessageBufferSend(vibration_message_buffer, hex_buffer, sizeof(hex_buffer), portMAX_DELAY);
@@ -114,14 +117,13 @@ void mqtt_publish(void *arg)
             ESP_LOGE("mqtt_publish", "Error: unexpected number of bytes for vibration reading");
             error_counter++;
         }
-        if (snprintf(message, sizeof(message), "{ \"temperature\": %0.2f, \"humidity\": %0.2f, \"ambient_light\": %0.2f, \"white_light\": %0.2f}, \"particle_count\": %u, \"vibration\": %s", bne_readings.temp_reading / 100.0, bne_readings.humidity_reading / 1024.0, veml_readings.als_reading, veml_readings.white_reading, particle_count_readings, vibration_readings) < 0)
+        if (snprintf(message, sizeof(message), "{ \"temperature\": %0.2f, \"humidity\": %0.2f, \"ambient_light\": %0.2f, \"white_light\": %0.2f, \"particle_count\": %u, \"vibration\": \"%s\" }", bne_readings.temp_reading / 100.0, bne_readings.humidity_reading / 1024.0, veml_readings.als_reading, veml_readings.white_reading, particle_count_readings, vibration_readings) < 0)
         {
             ESP_LOGE("mqtt_publish","Error: something happened while generating mqtt message");
             error_counter++;
         }
-        ESP_LOGI("mqtt_publish", "pre Published");
+        ESP_LOGI("mqtt_publish", "Publishing");
         int ret = esp_mqtt_client_publish(mqtt_client, "/topic/test", message, 0, 1, 0);
-        ESP_LOGI("mqtt_publish", "post Published");
         if (ret == -1)
         {
             ESP_LOGE("mqtt_publish", "Error: Failed to publish to MQTT broker");
