@@ -30,7 +30,7 @@ void configure_bme280(void)
     // Take ownership of I2C bus
     if (xSemaphoreTake(i2c_mutex, portMAX_DELAY) != pdTRUE)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to take i2c mutex");
+        ESP_LOGE("configure_bme280", "Failed to take i2c mutex");
         abort();
     }
 
@@ -50,7 +50,7 @@ void configure_bme280(void)
     retry_count = 0;
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed configuring setup time and filter for BME280");
+        ESP_LOGE("configure_bme280", "Failed configuring setup time and filter for BME280");
         bme280_config_error = true;
     }
 
@@ -69,7 +69,7 @@ void configure_bme280(void)
     retry_count = 0;
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed configuring temperature oversampling and mode for BME280");
+        ESP_LOGE("configure_bme280", "Failed configuring temperature oversampling and mode for BME280");
         bme280_config_error = true;
     }
 
@@ -87,7 +87,7 @@ void configure_bme280(void)
     } while(ret != ESP_OK && retry_count < I2C_SETUP_RETRY_COUNT);
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed configureing humidity oversampling for BME280");
+        ESP_LOGE("configure_bme280", "Failed configureing humidity oversampling for BME280");
         bme280_config_error = true;
     }
 
@@ -104,7 +104,7 @@ void read_compensation_bme280(void)
     // Take ownership of I2C bus
     if (xSemaphoreTake(i2c_mutex, portMAX_DELAY) != pdTRUE)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to take i2c mutex");
+        ESP_LOGE("read_compensation_bme280", "Failed to take i2c mutex");
         abort();
     }
 
@@ -124,7 +124,7 @@ void read_compensation_bme280(void)
     
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_T1 from BME280");
+        ESP_LOGE("read_compensation_bme280", "Failed to read dig_T1 from BME280");
         bme280_config_error = true;
     }
 
@@ -145,7 +145,7 @@ void read_compensation_bme280(void)
     
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_T2 from BME280");
+        ESP_LOGE("read_compensation_bme280", "Failed to read dig_T2 from BME280");
         bme280_config_error = true;
     }
 
@@ -166,7 +166,7 @@ void read_compensation_bme280(void)
     
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_T3 from BME280");
+        ESP_LOGE("read_compensation_bme280", "Failed to read dig_T3 from BME280");
         bme280_config_error = true;
     }
 
@@ -188,7 +188,7 @@ void read_compensation_bme280(void)
     
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_H1 from BME280");
+        ESP_LOGE("read_compensation_bme280", "Failed to read dig_H1 from BME280");
         bme280_config_error = true;
     }
 
@@ -209,7 +209,7 @@ void read_compensation_bme280(void)
     
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_H2 from BME280");
+        ESP_LOGE("read_compensation_bme280", "Failed to read dig_H2 from BME280");
         bme280_config_error = true;
     }
 
@@ -230,7 +230,7 @@ void read_compensation_bme280(void)
     
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_H3 from BME280");
+        ESP_LOGE("read_compensation_bme280", "Failed to read dig_H3 from BME280");
         bme280_config_error = true;
     }
 
@@ -251,7 +251,7 @@ void read_compensation_bme280(void)
     
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_H4 from BME280");
+        ESP_LOGE("read_compensation_bme280", "Failed to read dig_H4 from BME280");
         bme280_config_error = true;
     }
 
@@ -272,7 +272,7 @@ void read_compensation_bme280(void)
     
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_H5 from BME280");
+        ESP_LOGE("read_compensation_bme280", "Failed to read dig_H5 from BME280");
         bme280_config_error = true;
     }
 
@@ -293,7 +293,7 @@ void read_compensation_bme280(void)
     
     if (ret != ESP_OK)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to read dig_H6 from BME280");
+        ESP_LOGE("read_compensation_bme280", "Failed to read dig_H6 from BME280");
         bme280_config_error = true;
     }
 
@@ -316,7 +316,7 @@ void get_temp_and_humidity(temp_and_humidity_t *readings)
     // Take ownership of I2C bus
     if (xSemaphoreTake(i2c_mutex, portMAX_DELAY) != pdTRUE)
     {
-        ESP_LOGE(I2C_CONSOLE_TAG, "Failed to take i2c mutex");
+        ESP_LOGE("get_temp_and_humidity", "Failed to take i2c mutex");
         abort();
     }
 

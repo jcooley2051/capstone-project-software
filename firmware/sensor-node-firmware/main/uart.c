@@ -33,7 +33,7 @@ void init_uart(void)
 
     if (ret != ESP_OK)
     {
-        ESP_LOGE(UART_CONSOLE_TAG, "Failed to install UART driver");
+        ESP_LOGE("init_uart", "Failed to install UART driver");
         abort();
     }
 
@@ -51,7 +51,7 @@ void init_uart(void)
 
     if (ret != ESP_OK)
     {
-        ESP_LOGE(UART_CONSOLE_TAG, "Failed to configure UART");
+        ESP_LOGE("init_uart", "Failed to configure UART");
         abort();
     }
 
@@ -69,7 +69,7 @@ void init_uart(void)
 
     if (ret != ESP_OK)
     {
-        ESP_LOGE(UART_CONSOLE_TAG, "Failed to set UART pins");
+        ESP_LOGE("init_uart", "Failed to set UART pins");
         abort();
     }
 
@@ -90,7 +90,7 @@ void init_uart(void)
 
     if (uart_mutex == NULL)
     {
-        ESP_LOGE("FreeRTOS", "Failed to initialize UART mutex. Likely out of heap space");
+        ESP_LOGE("init_uart", "Failed to initialize UART mutex. Likely out of heap space");
         // Best chance of fixing this is just to reset the MCU
         abort();
     }

@@ -12,11 +12,20 @@ extern TimerHandle_t sensor_timer;
 #define UPDATE_PERIOD_MS 1000
 
 // Event bit mask (one bit per task)
-#define SENSOR_EVENT_BIT_0 (1 << 0)
-#define SENSOR_EVENT_BIT_1 (1 << 1)
-#define SENSOR_EVENT_BIT_2 (1 << 2)
+#define EVENT_BIT_READY_TEMP (1 << 0)
+#define EVENT_BIT_READY_LIGHT (1 << 1)
+#define EVENT_BIT_READY_PARTICLE (1 << 2)
+#define EVENT_BIT_DONE_TEMP (1 << 3)
+#define EVENT_BIT_DONE_LIGHT (1 << 4)
+#define EVENT_BIT_DONE_PARTICLE (1 << 5)
 
+/* Callback function for timer event. Triggered every second.
+    Resets event group to signal to sensors to take a reading
+    Parameters:
+    xTimer: handle for a freeRTOS software timer    
+*/
 void sensor_timer_callback(TimerHandle_t xTimer);
+/* Initializes the freeRTOS software timer */
 void init_timer(void);
 
 #endif

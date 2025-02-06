@@ -20,6 +20,6 @@ void init_timer(void)
 
 void sensor_timer_callback(TimerHandle_t xTimer) 
 {
-    // Set bits to notify sensor reading tasks
-    xEventGroupSetBits(sensor_event_group, SENSOR_EVENT_BIT_0 | SENSOR_EVENT_BIT_1 | SENSOR_EVENT_BIT_2);
+    // Set bits to notify sensor reading tasks that they should take another reading
+    xEventGroupSetBits(sensor_event_group, EVENT_BIT_READY_TEMP | EVENT_BIT_READY_LIGHT | EVENT_BIT_READY_PARTICLE);
 }

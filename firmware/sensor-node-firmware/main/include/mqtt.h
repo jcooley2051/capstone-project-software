@@ -11,8 +11,11 @@
 
 // MQTT client handle
 extern esp_mqtt_client_handle_t mqtt_client;
+
+// Signal to initialize tasks after MQTT is connected
 extern SemaphoreHandle_t mqtt_semaphore;
 
+/* Sets up and configures the MQTT client */
 void init_mqtt(void);
 
 #endif
