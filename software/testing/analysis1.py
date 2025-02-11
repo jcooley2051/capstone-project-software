@@ -12,7 +12,7 @@ MQTT_PORT = 1337
 OUTPUT_TOPIC = "analysis/results"
 INPUT_TOPIC = "reading/formatted"
 
-# Acceptable Ranges (for application logic)
+# Acceptable Ranges
 acceptable_temp_range = (18, 30)   # Temperature: 18°C to 30°C
 acceptable_humid_range = (30, 70)    # Humidity: 30% to 70%
 acceptable_light_range = (0, 15)     # Ambient light in lux: 0 to 15
