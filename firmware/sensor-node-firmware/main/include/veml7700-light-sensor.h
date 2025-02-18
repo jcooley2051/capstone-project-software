@@ -2,7 +2,7 @@
 #define VEML7700_LIGHT_SENSOR_H
 
 // Used in conversion for sensor reading to LUX
-#define RESOLUTION 0.0168f
+#define RESOLUTION 0.0336f
 // Dummy value sent when there is an issue with reading the sensor
 #define DUMMY_LIGHT_READING (-1000)
 // Structure to hold the sensor readings for both the absolute and white light sensor
