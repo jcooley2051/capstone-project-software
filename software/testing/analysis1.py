@@ -12,10 +12,11 @@ MQTT_PORT = 1337
 OUTPUT_TOPIC = "analysis/results"
 INPUT_TOPIC = "reading/formatted"
 
-# Acceptable Ranges
-acceptable_temp_range = (18, 30)   # Temperature: 18°C to 30°C
+# Acceptable Ranges 
+acceptable_temp_range = (18, 30)     # Temperature: 18°C to 30°C
 acceptable_humid_range = (30, 70)    # Humidity: 30% to 70%
 acceptable_light_range = (0, 15)     # Ambient light in lux: 0 to 15
+acceptable_particle_range = (0,200)  # Acceptable Range of Particle Count
 
 # Sensor maximum and minimum values
 BME280_TEMP_MAX = 85    # Maximum temperature 
@@ -38,15 +39,15 @@ fiveminbuff = []
 def initialize_csv():
     with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)", "Timestamp"])
+        writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)","Particle Count", "Timestamp"])
 
     with open(OUT_OF_RANGE_FILE, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)", "Timestamp", "Reason", "Context"])
+        writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)","Particle Count", "Timestamp", "Reason"])
 
     with open(CONTEXT_FILE, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)", "Timestamp", "Context Type"])
+        writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)","Particle Count", "Timestamp", "Context Type"])
 
 # Function to wait for MQTT broker connection.
 def wait_for_mqtt_connection():
@@ -76,9 +77,9 @@ def update_csv_file():
     )
     with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)", "Timestamp"])
+        writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)", "Particle Count", "Timestamp"])
         for m in sorted_measurements:
-            writer.writerow([m['temperature'], m['humidity'], m['ambient_light'], m['time']])
+            writer.writerow([m['temperature'], m['humidity'], m['ambient_light'], m['particle_count'], m['time']])
 
 # Save an out-of-range measurement into its CSV file.
 def save_out_of_range(measurement, reason, context):
@@ -88,6 +89,7 @@ def save_out_of_range(measurement, reason, context):
             measurement['temperature'],
             measurement['humidity'],
             measurement['ambient_light'],
+            measurement['particle_count'],
             measurement['time'],
             reason,
             context
@@ -101,6 +103,7 @@ def save_context_data(measurement, context_type):
             measurement['temperature'],
             measurement['humidity'],
             measurement['ambient_light'],
+            measurement['particle_count'],
             measurement['time'],
             context_type
         ])
@@ -170,7 +173,9 @@ def analyze_and_process(measurement):
         reasons.append("Humidity out of range")
     if not (acceptable_light_range[0] <= measurement['ambient_light'] <= acceptable_light_range[1]):
         reasons.append("Ambient light out of range")
-
+    if not (acceptable_particle_range[0] <= measurement['particle_count'] <= acceptable_particle_range[1]):
+        reasons.append("Particle count out of range")
+    
     if reasons:
         context = "Surrounding error readings"
         save_out_of_range(measurement, "; ".join(reasons), context)
@@ -219,6 +224,7 @@ def listen_to_topic_combined(topic):
                     if (message.get("temperature") is None or 
                         message.get("humidity") is None or 
                         message.get("ambient_light") is None or 
+                        message.get("particle_count") is None or
                         message.get("time") is None):
                         print(f"Incomplete data received on topic '{topic}': {line}")
                         continue
