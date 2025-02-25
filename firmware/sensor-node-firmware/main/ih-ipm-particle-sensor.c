@@ -57,5 +57,10 @@ void get_particle_count(uint16_t *reading)
         ESP_LOGE("get_particle_count", "Error: Unexpected number of bytes received");
         *reading = DUMMY_PARTICLE_COUNT;
     }
-    xSemaphoreGive(uart_mutex);
+    // Relinquish control of the UART bus
+    if (xSemaphoreGive(uart_mutex) != pdTRUE)
+    {
+        ESP_LOGE("get_particle_count", "Failed to give adxl i2c mutex");
+        abort();
+    }
 }
