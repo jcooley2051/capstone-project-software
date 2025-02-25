@@ -304,7 +304,7 @@ void read_compensation_bme280(void)
     dig_H6 = read_buffer[0];
 
     // Release bus
-    if (xSemaphoreGive(i2c_mutex, portMAX_DELAY) != pdTRUE)
+    if (xSemaphoreGive(i2c_mutex) != pdTRUE)
     {
         ESP_LOGE("read_compensation_bme280", "Failed to give i2c mutex");
         abort();
