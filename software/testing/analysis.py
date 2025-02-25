@@ -8,7 +8,7 @@ from threading import Thread
 
 # MQTT Configuration
 MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
+MQTT_PORT = 1337
 OUTPUT_TOPIC = "analysis/results"
 INPUT_TOPIC = "reading/formatted"
 
