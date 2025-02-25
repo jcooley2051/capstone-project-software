@@ -77,7 +77,7 @@ void configure_adxl(void)
     // Release the i2c bus
     if (xSemaphoreGive(adxl_i2c_mutex) != pdTRUE)
     {
-        ESP_LOGE("configure_adxl", "Failed to give adxl i2c mutex");
+        ESP_LOGE("configure_adxl", "Failed to take adxl i2c mutex");
         abort();
     }
 }
