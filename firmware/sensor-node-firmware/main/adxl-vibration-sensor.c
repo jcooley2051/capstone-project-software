@@ -10,11 +10,17 @@ static bool adxl_config_error = false;
 
 void configure_adxl(void)
 {
+    // Take control of the i2c bus
+    if (xSemaphoreTake(adxl_i2c_mutex, portMAX_DELAY) != pdTRUE)
+    {
+        ESP_LOGE("configure_adxl", "Failed to take adxl i2c mutex");
+        abort();
+    }
     esp_err_t ret = ESP_OK;
 
     uint8_t write_buffer[2];
     write_buffer[0] = 0x2D;
-    write_buffer[1] = 0x92;
+    write_buffer[1] = 0x00;
     int retry_count = 0;
     do
     {
@@ -33,7 +39,7 @@ void configure_adxl(void)
 
 
     write_buffer[0] = 0x28;
-    write_buffer[1] = 0x01;
+    write_buffer[1] = 0x00;
     retry_count = 0;
     do
     {
@@ -67,22 +73,29 @@ void configure_adxl(void)
         ESP_LOGE("configure_adxl", "Failed configuring setup time and filter for BME280");
         adxl_config_error = true;
     }
-    // Placeholder in case we decide to customize configuration
+
+    // Release the i2c bus
+    if (xSemaphoreGive(adxl_i2c_mutex) != pdTRUE)
+    {
+        ESP_LOGE("configure_adxl", "Failed to take adxl i2c mutex");
+        abort();
+    }
 }
 
 
 void get_vibration_readings(uint8_t *readings)
 {
-    // Address of the registers to start reading acceleration data at
-    uint8_t write_buffer[1] = {0x08};
-    const TickType_t period_ticks = pdMS_TO_TICKS(1000 / ADXL_SAMPLE_RATE);
-    int count = 0;
-    int i = 0;
+    // Take the i2c bus
     if (xSemaphoreTake(adxl_i2c_mutex, portMAX_DELAY) != pdTRUE)
     {
         ESP_LOGE("get_vibration_readings", "Failed to take adxl i2c mutex");
         abort();
     }
+    // Address of the registers to start reading acceleration data at
+    uint8_t write_buffer[1] = {0x08};
+    const TickType_t period_ticks = pdMS_TO_TICKS(1000 / ADXL_SAMPLE_RATE);
+    int count = 0;
+    int i = 0;
     TickType_t last_wake_time = xTaskGetTickCount();
     esp_err_t ret = ESP_OK;
     // Due to the strict timing requirements, we don't retry taking readings. 
@@ -102,7 +115,12 @@ void get_vibration_readings(uint8_t *readings)
         }
     }
 
-    xSemaphoreGive(adxl_i2c_mutex);
+    // Release the i2c bus
+    if (xSemaphoreGive(adxl_i2c_mutex) != pdTRUE)
+    {
+        ESP_LOGE("configure_adxl", "Failed to give adxl i2c mutex");
+        abort();
+    }
 }
 
 void encode_to_hex(uint8_t *readings_buffer, size_t buffer_length, char *output_buffer)

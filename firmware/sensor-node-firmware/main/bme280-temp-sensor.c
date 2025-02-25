@@ -9,12 +9,12 @@
 uint16_t dig_T1;
 int16_t dig_T2;
 int16_t dig_T3;
-uint8_t dig_H1;
+char dig_H1;
 int16_t dig_H2;
-uint8_t dig_H3;
+char dig_H3;
 int16_t dig_H4;
 int16_t dig_H5;
-int8_t dig_H6;
+char dig_H6;
 
 static bool bme280_config_error = false;
 
@@ -91,8 +91,12 @@ void configure_bme280(void)
         bme280_config_error = true;
     }
 
-    // Release bus, this shouldn't be able to fail here
-    xSemaphoreGive(i2c_mutex);
+    // Release the bus
+    if (xSemaphoreGive(i2c_mutex) != pdTRUE)
+    {
+        ESP_LOGE("configure_bme280", "Failed to give i2c mutex");
+        abort();
+    }
 }
 
 // Reads compensation values from registers on the BME280
@@ -300,7 +304,11 @@ void read_compensation_bme280(void)
     dig_H6 = read_buffer[0];
 
     // Release bus
-    xSemaphoreGive(i2c_mutex);
+    if (xSemaphoreGive(i2c_mutex, portMAX_DELAY) != pdTRUE)
+    {
+        ESP_LOGE("read_compensation_bme280", "Failed to give i2c mutex");
+        abort();
+    }
 }
 
 // Function to get temperature and humidity readings from the BME280, they need to be together because temperature is used in calculating the RH
@@ -331,7 +339,11 @@ void get_temp_and_humidity(temp_and_humidity_t *readings)
     } while(ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
 
     // Release bus
-    xSemaphoreGive(i2c_mutex);
+    if (xSemaphoreGive(i2c_mutex) != pdTRUE)
+    {
+        ESP_LOGE("read_compensation_bme280", "Failed to give i2c mutex");
+        abort();
+    }
 
     // If there is a failure in the reading, set a dummy value of (-500C, 150% humidity to be detected by analysis software)
     if (bme280_config_error == true || ret != ESP_OK) {
