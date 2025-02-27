@@ -38,6 +38,7 @@ static void wifi_event_handler(void* arg, esp_event_base_t event_base, int32_t e
         }
         esp_wifi_connect();
         ESP_LOGI(WIFI_EVENT_TAG, "retry to connect to the AP");
+        connection_retry_count++;
     } 
     else if (event_base == IP_EVENT && event_id == IP_EVENT_STA_GOT_IP) 
     {
