@@ -9,7 +9,8 @@ static bool veml7700_config_error = false;
 
 void configure_veml7700(void)
 {
-    uint8_t write_buffer[3] = {0x00, 0x10, 0x00};
+    // Little Endian
+    uint8_t write_buffer[3] = {0x00, 0x80, 0x00};
 
     // Take ownership of I2C bus
     if (xSemaphoreTake(i2c_mutex, portMAX_DELAY) != pdTRUE)
