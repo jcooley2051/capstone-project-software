@@ -13,7 +13,6 @@ MQTT_PORT = 1337
 
 # Local testing configuration
 #MQTT_BROKER = "test.mosquitto.org"
-#MQTT_PORT = 1883
 
 # Dictionary to store temperature and humidity data
 data = {"temperature": None, "humidity": None, "ambient_light":None, "particle_count":None, "vibration":None, "time": None}
