@@ -13,8 +13,7 @@
 #define I2C_PORT_AUTO -1
 #define SENSOR_ADDRESS 0x10
 
-//#define RESOLUTION 0.0168f
-#define RESOLUTION 0.0336f
+#define RESOLUTION  0.0144f
 
 // I2C handles
 i2c_master_bus_handle_t bus_handle;
@@ -34,7 +33,7 @@ void init_i2c(void)
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = SENSOR_ADDRESS,
-        .scl_speed_hz = 400000,
+        .scl_speed_hz = 100000,
     };
 
     ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_mst_config, &bus_handle));
@@ -45,25 +44,26 @@ void configure_veml7700(void)
 {
     uint8_t write_buffer[3];
     write_buffer[0] = 0x00;
-    write_buffer[1] = 0x10;
+    // Little Endian
     write_buffer[2] = 0x00;
+    write_buffer[1] = 0x80;
     ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buffer, 3, portMAX_DELAY));
-    // Placeholder in case we decide to customize configuration
 }
 
 void veml_readings_task(void *arg)
 {
-    uint8_t write_buffer[1] = {0x04};
+    uint8_t write_buffer[1];
     uint8_t als_read_buffer[2];
     uint8_t white_read_buffer[2];
     
     while(1)
     {
+        write_buffer[0] = 0x04;
         ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, write_buffer, 1, als_read_buffer, 2, portMAX_DELAY));
         write_buffer[0] = 0x05;
         ESP_ERROR_CHECK(i2c_master_transmit_receive(dev_handle, write_buffer, 1, white_read_buffer, 2, portMAX_DELAY));
         print_sensor_reading(als_read_buffer, white_read_buffer);
-        vTaskDelay(750 / portTICK_PERIOD_MS);  // 750ms delay (600ms refresh rate MAX)
+        vTaskDelay(1000 / portTICK_PERIOD_MS);  // 750ms delay (600ms refresh rate MAX)
     }
 }
 
