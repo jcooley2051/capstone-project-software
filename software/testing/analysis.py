@@ -134,7 +134,7 @@ def check_early_warning(measurement):
         'temperature': 2,      # degrees Celsius
         'humidity': 5,         # percentage points
         'ambient_light': 2,    # lux
-        'particle_count': 100  # particle count units
+        'particle_count': 50  # particle count units
     }
     
     sensors = ['temperature', 'humidity', 'ambient_light', 'particle_count']
@@ -175,7 +175,7 @@ def analyze_and_process(measurement):
         print(f"Error parsing measurement time: {measurement['time']} Error: {e}")
         return
 
-    # SENSOR RANGE CHECKS
+    # SENSOR RANGE CHECKS TO MAKE SURE WORKING CORRECTLY
     if measurement['temperature'] >= BME280_TEMP_MAX:
         print(f"WARNING: Temperature {measurement['temperature']}°C is at or above max limit ({BME280_TEMP_MAX}°C)!")
     if measurement['temperature'] <= BME280_TEMP_MIN:
@@ -233,11 +233,11 @@ def analyze_and_process(measurement):
             'deadline': out_of_range_time + timedelta(seconds=300)
         })
 
-    # Process any pending error events for post-error context data.
+    # Get any errors into 5 min buffer.
     for event in fiveminbuff.copy():
         if event['error_time'] < current_measurement_time <= event['deadline']:
             save_context_data(measurement, "Surrounding Errors (post)")
-        # Remove error events that have passed their deadline.
+        # Remove error events that have passed their time.
         if current_measurement_time > event['deadline']:
             fiveminbuff.remove(event)
     
@@ -255,7 +255,7 @@ def listen_to_topic_combined(topic):
                 line = line.strip()
                 try:
                     message = json.loads(line)
-                    # Check if message has the required keys (vibration is expected).
+                    # Check if message has the required readings.
                     if all(k in message for k in ["temperature", "humidity", "ambient_light", "particle_count", "time", "vibration"]):
                         analyze_and_process(message)
                     else:
