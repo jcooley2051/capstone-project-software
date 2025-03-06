@@ -27,19 +27,19 @@ def update_vars(root, reading, stringVars):
     
     stringVars['PL']['temp'].set(reading['temperature'])
     stringVars['PL']['humidity'].set(reading['humidity'])
-    stringVars['PL']['light'].set(reading['light'])
+    stringVars['PL']['light'].set(reading['ambient_light'])
     stringVars['PL']['vibration'].set(reading['vibration'])
     stringVars['PL']['status'].set('PLACEHOLDER')
 
     stringVars['SC']['temp'].set(reading['temperature'])
     stringVars['SC']['humidity'].set(reading['humidity'])
-    stringVars['SC']['particle'].set(reading['particle'])
+    stringVars['SC']['particle'].set(reading['particle_count'])
     stringVars['SC']['vibration'].set(reading['vibration'])
     stringVars['SC']['status'].set('PLACEHOLDER')
 
     stringVars['Sp']['temp'].set(reading['temperature'])
     stringVars['Sp']['humidity'].set(reading['humidity'])
-    stringVars['Sp']['light'].set(reading['light'])
+    stringVars['Sp']['light'].set(reading['ambient_light'])
     stringVars['Sp']['status'].set('PLACEHOLDER')
 
     
@@ -80,8 +80,8 @@ def listen_to_topic(topic):
                             dPoint = {
                                     'temperature': data['temperature'],
                                     'humidity': data['humidity'],
-                                    'ambient_light': data['light'],
-                                    'particle_count': data['particle'],
+                                    'ambient_light': data['ambient_light'],
+                                    'particle_count': data['particle_count'],
                                     'vibration': data['vibration'],
                                     'time': data['time']
                                     }
@@ -97,8 +97,8 @@ def listen_to_topic(topic):
                             # Reset data for next reading                            
                             data['temperature'] = None
                             data['humidity'] = None
-                            data['light'] = None
-                            data['particle'] = None
+                            data['ambient_light'] = None
+                            data['particle_count'] = None
                             data['vibration'] = None
                             data['time'] = None
 
