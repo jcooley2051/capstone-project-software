@@ -80,8 +80,9 @@ def listen_to_topic(topic):
                             dPoint = {
                                     'temperature': data['temperature'],
                                     'humidity': data['humidity'],
-                                    'light': data['light'],
-                                    'particle': data['particle'],
+                                    'ambient_light': data['light'],
+                                    'particle_count': data['particle'],
+                                    'vibration': data['vibration'],
                                     'time': data['time']
                                     }
                             
@@ -98,6 +99,7 @@ def listen_to_topic(topic):
                             data['humidity'] = None
                             data['light'] = None
                             data['particle'] = None
+                            data['vibration'] = None
                             data['time'] = None
 
     
