@@ -15,7 +15,7 @@ INPUT_TOPIC = "reading/formatted"
 # Acceptable Ranges 
 acceptable_temp_range = (18, 30)     # Temperature: 18°C to 30°C
 acceptable_humid_range = (30, 70)      # Humidity: 30% to 70%
-acceptable_light_range = (0, 15)       # Ambient light in lux: 0 to 15
+acceptable_light_range = (0, 100)       # Ambient light in lux: 0 to 15
 acceptable_particle_range = (0, 1000)  # Acceptable Range of Particle Count
 
 # Acceptable Vibration Range (for each axis: x, y, z)
