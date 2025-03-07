@@ -85,16 +85,16 @@ void vibration_readings(void *arg)
     while(1)
     {
         // Wait for all other tasks to complete their readings so that we can get an uninterrupted run of the vibration readings 
-    #if defined(PHOTOLITHOGRAPHY) && defined(SPUTTERING) && defined(SPIN_COATING)
+#if defined(PHOTOLITHOGRAPHY) && defined(SPUTTERING) && defined(SPIN_COATING)
         xEventGroupWaitBits(sensor_event_group, EVENT_BIT_DONE_TEMP | EVENT_BIT_DONE_LIGHT | EVENT_BIT_DONE_PARTICLE, pdTRUE, pdTRUE, portMAX_DELAY);
-    #else
-    #ifdef PHOTOLITHOGRAPHY
+#else
+#ifdef PHOTOLITHOGRAPHY
         xEventGroupWaitBits(sensor_event_group, EVENT_BIT_DONE_TEMP | EVENT_BIT_DONE_LIGHT, pdTRUE, pdTRUE, portMAX_DELAY);
-    #endif
-    #ifdef SPIN_COATING
+#endif
+#ifdef SPIN_COATING
         xEventGroupWaitBits(sensor_event_group, EVENT_BIT_DONE_TEMP | EVENT_BIT_DONE_PARTICLE, pdTRUE, pdTRUE, portMAX_DELAY);
-    #endif
-    #endif    
+#endif
+#endif    
         ESP_LOGI("vibration_readings", "Getting vibration reading");
         get_vibration_readings(read_buffer);
         encode_to_hex(read_buffer, sizeof(read_buffer), hex_buffer);
