@@ -99,9 +99,9 @@ void config_wifi(void)
     wifi_config_t wifi_cfg = {
         .sta = {
             .ssid = WIFI_SSID,
-            //.password = WIFI_PASSWORD,
-            //.threshold.authmode = WIFI_AUTH_WPA2_PSK,
-            .threshold.authmode = WIFI_AUTH_OPEN,
+            .password = WIFI_PASSWORD,
+            .threshold.authmode = WIFI_AUTH_WPA2_PSK,
+            //.threshold.authmode = WIFI_AUTH_OPEN,
         },
     };
 

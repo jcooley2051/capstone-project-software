@@ -7,7 +7,7 @@
 
 #define MQTT_TAG "MQTT:"
 
-#define MQTT_BROKER_URI "mqtt://10.42.0.1:1337"
+#define MQTT_BROKER_URI "mqtt://:1883"
 
 // MQTT client handle
 extern esp_mqtt_client_handle_t mqtt_client;
