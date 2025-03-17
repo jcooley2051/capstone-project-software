@@ -13,7 +13,7 @@
 #define I2C_PORT_AUTO -1
 #define SENSOR_ADDRESS 0x10
 
-#define RESOLUTION  0.0144f
+#define RESOLUTION  0.0168f
 
 // I2C handles
 i2c_master_bus_handle_t bus_handle;
