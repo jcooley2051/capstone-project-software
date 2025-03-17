@@ -1,6 +1,14 @@
 #ifndef ADXL_VIBRATION_SENSOR_H
 #define ADXL_VIBRATION_SENSOR_H
 
+// Configuration register definitions
+#define ADXL_POWER_CRL_REGISTER 0x2D
+#define ADXL_FILTER_REGISTER 0x28
+#define ADXL_RANGE_REGISTER 0x2C
+
+// Readings register definition
+#define ADXL_READINGS_REGISTER 0x08
+
 #define ADXL_READING_SIZE_BYTES 9
 #define ADXL_SAMPLE_RATE 500 // Hz
 #define ADXL_NUM_READINGS ADXL_SAMPLE_RATE / 2

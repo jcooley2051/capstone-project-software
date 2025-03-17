@@ -35,10 +35,9 @@ void configure_bme280(void)
         abort();
     }
 
-    // Configure standby time (20ms) and filter (Off) 0b11100000
-    write_buffer[0] = 0xF5; // Register Address
-    write_buffer[1] = 0xD0;
-
+    // Configure standby time and filter
+    write_buffer[0] = BME_CONFIG_REGISTER;
+    write_buffer[1] = 0xD0; // 20ms stby time filter off (0b11100000)
     do
     {
         ret = i2c_master_transmit(bme_handle, write_buffer, sizeof(write_buffer), portMAX_DELAY);
@@ -55,9 +54,9 @@ void configure_bme280(void)
         bme280_config_error = true;
     }
 
-    // Configure Temperature Oversampling (16x) and mode (Normal) 0b10100011
-    write_buffer[0] = 0xF4; // Register Address
-    write_buffer[1] = 0xA3;
+    // Configure Temperature sampling and mode
+    write_buffer[0] = BME_CTRL_MEAS_REGISTER;
+    write_buffer[1] = 0xA3; // 16x oversampling, normal mode (0b10100011)
     do
     {
         ret = i2c_master_transmit(bme_handle, write_buffer, sizeof(write_buffer), portMAX_DELAY);
@@ -74,9 +73,9 @@ void configure_bme280(void)
         bme280_config_error = true;
     }
 
-    // Configure Humidity Oversampling (16x) 0b00000101
-    write_buffer[0] = 0xF2; // Register Address
-    write_buffer[1] = 0x05;
+    // Configure Humidity Oversampling
+    write_buffer[0] = BME_CTRL_HUM_REGISTER;
+    write_buffer[1] = 0x05; // 16x oversampling (0b00000101)
     do
     {
         ret = i2c_master_transmit(bme_handle, write_buffer, sizeof(write_buffer), portMAX_DELAY);
@@ -116,7 +115,7 @@ void read_compensation_bme280(void)
     // Read dig_T1
     int retry_count = 0;
     esp_err_t ret = ESP_OK;
-    write_buffer[0] = 0x88;
+    write_buffer[0] = DIG_T1_REGISTER;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
@@ -137,7 +136,7 @@ void read_compensation_bme280(void)
 
     // Read dig_T2
     retry_count = 0;
-    write_buffer[0] = 0x8A;
+    write_buffer[0] = DIG_T2_REGISTER;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
@@ -158,7 +157,7 @@ void read_compensation_bme280(void)
 
     // Read dig_T3
     retry_count = 0;
-    write_buffer[0] = 0x8C;
+    write_buffer[0] = DIG_T3_REGISTER;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
@@ -179,7 +178,7 @@ void read_compensation_bme280(void)
 
     // Read dig_H1
     retry_count = 0;
-    write_buffer[0] = 0xA1;
+    write_buffer[0] = DIG_H1_REGISTER;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1, portMAX_DELAY);
@@ -201,7 +200,7 @@ void read_compensation_bme280(void)
 
     // Read dig_H2
     retry_count = 0;
-    write_buffer[0] = 0xE1;
+    write_buffer[0] = DIG_H2_REGISTER;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
@@ -222,7 +221,7 @@ void read_compensation_bme280(void)
 
     // Read dig_H3
     retry_count = 0;
-    write_buffer[0] = 0xE3;
+    write_buffer[0] = DIG_H3_REGISTER;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1, portMAX_DELAY);
@@ -243,7 +242,7 @@ void read_compensation_bme280(void)
 
     // Read dig_H4
     retry_count = 0;
-    write_buffer[0] = 0xE4;
+    write_buffer[0] = DIG_H4_REGISTER;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
@@ -264,7 +263,7 @@ void read_compensation_bme280(void)
 
     // Read dig_H5
     retry_count = 0;
-    write_buffer[0] = 0xE5;
+    write_buffer[0] = DIG_H5_REGISTER;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
@@ -285,7 +284,7 @@ void read_compensation_bme280(void)
 
     // Read dig_H6
     retry_count = 0;
-    write_buffer[0] = 0xE7;
+    write_buffer[0] = DIG_H6_REGISTER;
     do
     {
         ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1, portMAX_DELAY);
@@ -319,7 +318,7 @@ void get_temp_and_humidity(temp_and_humidity_t *readings)
     esp_err_t ret = ESP_OK;
 
     // Starting address for temperature and humidity readings
-    uint8_t write_buffer[1] = {0xF7};
+    uint8_t write_buffer[1] = {BME_READINGS_REGISTER};
     uint8_t read_buffer[8]; 
 
     // Take ownership of I2C bus
