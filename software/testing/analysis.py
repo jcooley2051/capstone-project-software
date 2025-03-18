@@ -58,19 +58,6 @@ def initialize_csv():
         writer = csv.writer(file)
         writer.writerow(["Temperature (°C)", "Humidity (%)", "Ambient Light (lux)", "Particle Count", "Vibration", "Timestamp", "Context Type"])
 
-# Function to publish result over MQTT
-def publish_result(result):
-    command = [
-        "mosquitto_pub",
-        "-h", MQTT_BROKER,
-        "-p", str(MQTT_PORT),
-        "-t", OUTPUT_TOPIC,
-        "-m", json.dumps(result)
-    ]
-    try:
-        subprocess.run(command, check=True)
-    except Exception as e:
-        print(f"Error publishing MQTT message: {e}")
 
 # Function to wait for MQTT broker connection
 def wait_for_mqtt_connection():
