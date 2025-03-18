@@ -9,6 +9,7 @@
 
 void get_particle_count(uint16_t *reading)
 {
+    // Command to read data, see data sheet
     int8_t read_data_cmd[] = {0xFE, 0xA5, 0x00, 0x00, 0xA5};
     uint8_t read_buffer[7];  // 7 bytes: Header + PM2.5 (2 bytes) + Checksum
 

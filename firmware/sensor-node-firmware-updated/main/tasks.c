@@ -182,7 +182,7 @@ void mqtt_publish(void *arg)
         get_message(message, sizeof(message), &readings);
 
         ESP_LOGI("mqtt_publish", "Publishing");
-        int ret = esp_mqtt_client_publish(mqtt_client, "topic/test", message, 0, 1, 0);
+        int ret = esp_mqtt_client_publish(mqtt_client, MQTT_TOPIC, message, 0, 1, 0);
         if (ret == -1)
         {
             ESP_LOGE("mqtt_publish", "Error: Failed to publish to MQTT broker");

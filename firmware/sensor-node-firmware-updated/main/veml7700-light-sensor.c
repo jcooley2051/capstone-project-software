@@ -11,8 +11,8 @@ static bool veml7700_config_error = false;
 
 void configure_veml7700(void)
 {
-    // Little Endian
-    uint8_t write_buffer[3] = {0x00, 0x80, 0x00};
+    // Little Endian, 1x gain, 400ms integration time
+    uint8_t write_buffer[3] = {VEML_CONFIG_REGISTER, 0x80, 0x00};
 
     // Take ownership of I2C bus
     if (xSemaphoreTake(i2c_mutex, portMAX_DELAY) != pdTRUE)
@@ -51,7 +51,7 @@ void get_light_level(light_readings_t *readings)
         abort();
     }
 
-    uint8_t write_buffer[1] = {0x04};
+    uint8_t write_buffer[1] = {VEML_ALS_READING_REGISTER};
     uint8_t als_read_buffer[2];
     uint8_t white_read_buffer[2];
 
@@ -69,7 +69,7 @@ void get_light_level(light_readings_t *readings)
 
     if (ret == ESP_OK)
     {
-        write_buffer[0] = 0x05;
+        write_buffer[0] = VEML_WHITE_READING_REGISTER;
         retry_count = 0;
         do
         {
@@ -97,9 +97,9 @@ void get_light_level(light_readings_t *readings)
     }
 
     uint16_t reading = ((als_read_buffer[1] << 8) | als_read_buffer[0]);
-    readings->als_reading = reading * RESOLUTION * 1.45;
+    readings->als_reading = reading * RESOLUTION;
     
     reading = ((white_read_buffer[1] << 8) | white_read_buffer[0]);
-    readings->white_reading = reading * RESOLUTION * 1.45;
+    readings->white_reading = reading * RESOLUTION;
 }
 #endif

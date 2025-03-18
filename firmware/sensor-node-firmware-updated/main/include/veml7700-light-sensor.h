@@ -1,8 +1,15 @@
 #ifndef VEML7700_LIGHT_SENSOR_H
 #define VEML7700_LIGHT_SENSOR_H
 
-// Used in conversion for sensor reading to LUX
-#define RESOLUTION 0.0144f
+// Configuration register definition
+#define VEML_CONFIG_REGISTER 0x00
+
+// Reading registers
+#define VEML_ALS_READING_REGISTER 0x04
+#define VEML_WHITE_READING_REGISTER 0x05
+
+// Used in conversion for sensor reading to LUX (see VEML7700 application notes)
+#define RESOLUTION 0.0168f
 // Dummy value sent when there is an issue with reading the sensor
 #define DUMMY_LIGHT_READING (-1000)
 // Structure to hold the sensor readings for both the absolute and white light sensor

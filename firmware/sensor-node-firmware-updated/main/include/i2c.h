@@ -7,12 +7,18 @@
 
 #define I2C_CONSOLE_TAG "I2C"
 
-// Clock and Data pins for the I2C bus for the BME and the VMEL
-#define SCL_GPIO_PIN 6
+// Clock and Data pins for the I2C bus for the BME and the VEML
+// Breadboard
+// #define SCL_GPIO_PIN 6
+// #define SDA_GPIO_PIN 5
+// #define ADXL_SCL_GPIO_PIN 9
+// #define ADXL_SDA_GPIO_PIN 10
+// PCB
+#define SCL_GPIO_PIN 4
 #define SDA_GPIO_PIN 5
+#define ADXL_SCL_GPIO_PIN 15
+#define ADXL_SDA_GPIO_PIN 16
 
-#define ADXL_SCL_GPIO_PIN 9
-#define ADXL_SDA_GPIO_PIN 10
 
 // Automatically select which I2C port to use
 #define I2C_PORT_AUTO -1

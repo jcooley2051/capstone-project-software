@@ -21,8 +21,8 @@ void configure_adxl(void)
     esp_err_t ret = ESP_OK;
 
     uint8_t write_buffer[2];
-    write_buffer[0] = 0x2D;
-    write_buffer[1] = 0x00;
+    write_buffer[0] = ADXL_POWER_CRL_REGISTER;
+    write_buffer[1] = 0x00; // Standby off
     int retry_count = 0;
     do
     {
@@ -40,7 +40,7 @@ void configure_adxl(void)
     }
 
 
-    write_buffer[0] = 0x28;
+    write_buffer[0] = ADXL_FILTER_REGISTER;
     write_buffer[1] = 0x00;
     retry_count = 0;
     do
@@ -58,8 +58,8 @@ void configure_adxl(void)
         adxl_config_error = true;
     }
 
-    write_buffer[0] = 0x2C;
-    write_buffer[1] = 0x01;
+    write_buffer[0] = ADXL_RANGE_REGISTER;
+    write_buffer[1] = 0x01; // 2g
     retry_count = 0;
     do
     {
@@ -94,7 +94,7 @@ void get_vibration_readings(uint8_t *readings)
         abort();
     }
     // Address of the registers to start reading acceleration data at
-    uint8_t write_buffer[1] = {0x08};
+    uint8_t write_buffer[1] = {ADXL_READINGS_REGISTER};
     const TickType_t period_ticks = pdMS_TO_TICKS(1000 / ADXL_SAMPLE_RATE);
     int count = 0;
     int i = 0;
