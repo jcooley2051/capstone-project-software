@@ -15,17 +15,14 @@ INPUT_TOPIC = "reading/formatted"
 # Acceptable Ranges 
 acceptable_temp_range = (18, 30)     # Temperature in °C
 acceptable_humid_range = (30, 70)      # Humidity in %
-acceptable_light_range = (0, 15)       # Ambient light in lux
+acceptable_light_range = (0, 30)       # Ambient light in lux
 acceptable_particle_range = (0, 1000)  # Particle count
 
-# Acceptable Vibration Range (each axis: x, y, z)
-acceptable_vibration_range = {
-    'x': (-0.5, 0.5),
-    'y': (-0.5, 0.5),
-    'z': (-0.5, 0.5)
-}
+# New vibration limits (scalar)
+VIBRATION_MIN = 0.0
+VIBRATION_MAX = 0.5
 
-# Sensor extremes
+# Sensor extreme values
 BME280_TEMP_MAX = 85    
 BME280_TEMP_MIN = -40   
 HUMIDITY_MAX = 100      
@@ -33,16 +30,19 @@ HUMIDITY_MIN = 0
 VEML7700_MAX_LIGHT = 120000
 IH_PMC_001_MAX = 1000   
 
-# CSV Files (includes Node column)
+# CSV Files (including Node)
 CSV_FILE = "measurements.csv"
 OUT_OF_RANGE_FILE = "out_of_range.csv"
 CONTEXT_FILE = "context_data.csv"
 
-# In-memory cache for 5-hour measurements.
+# Global in-memory cache for 5-hour measurements.
 measurements_cache = []
 
-# List to store error events in a 5-minute window.
+# Global list to store error events in a 5-minute buffer.
 fiveminbuff = []
+
+def safe_str(val):
+    return str(val) if val is not None else ""
 
 def initialize_csv():
     with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
@@ -66,42 +66,42 @@ def update_csv_file():
                          "Particle Count", "Vibration", "Timestamp"])
         for m in sorted_measurements:
             writer.writerow([
-                m.get("node"),
-                m.get("temperature"),
-                m.get("humidity"),
-                m.get("ambient_light"),
-                m.get("particle_count"),
-                json.dumps(m.get("vibration")),
-                m.get("time")
+                safe_str(m.get("node")),
+                safe_str(m.get("temperature")),
+                safe_str(m.get("humidity")),
+                safe_str(m.get("ambient_light")),
+                safe_str(m.get("particle_count")),
+                safe_str(m.get("vibration")),
+                safe_str(m.get("time"))
             ])
 
 def save_out_of_range(measurement, reason, context):
     with open(OUT_OF_RANGE_FILE, mode='a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow([
-            measurement.get("node"),
-            measurement.get("temperature"),
-            measurement.get("humidity"),
-            measurement.get("ambient_light"),
-            measurement.get("particle_count"),
-            json.dumps(measurement.get("vibration")),
-            measurement.get("time"),
-            reason,
-            context
+            safe_str(measurement.get("node")),
+            safe_str(measurement.get("temperature")),
+            safe_str(measurement.get("humidity")),
+            safe_str(measurement.get("ambient_light")),
+            safe_str(measurement.get("particle_count")),
+            safe_str(measurement.get("vibration")),
+            safe_str(measurement.get("time")),
+            safe_str(reason),
+            safe_str(context)
         ])
 
 def save_context_data(measurement, context_type):
     with open(CONTEXT_FILE, mode='a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow([
-            measurement.get("node"),
-            measurement.get("temperature"),
-            measurement.get("humidity"),
-            measurement.get("ambient_light"),
-            measurement.get("particle_count"),
-            json.dumps(measurement.get("vibration")),
-            measurement.get("time"),
-            context_type
+            safe_str(measurement.get("node")),
+            safe_str(measurement.get("temperature")),
+            safe_str(measurement.get("humidity")),
+            safe_str(measurement.get("ambient_light")),
+            safe_str(measurement.get("particle_count")),
+            safe_str(measurement.get("vibration")),
+            safe_str(measurement.get("time")),
+            safe_str(context_type)
         ])
 
 def wait_for_mqtt_connection():
@@ -125,20 +125,48 @@ def publish_to_mqtt(topic, message):
     ]
     subprocess.run(command)
 
-# Process and publish a single node's measurement.
+def check_null(data):
+    if (data["PL_data"].get("temperature") is None and
+        data["SC_data"].get("temperature") is None and
+        data["SP_data"].get("temperature") is None):
+        return True
+    return False
+
+def check_early_warning(measurement):
+    if len(measurements_cache) < 3:
+        return
+    sorted_measurements = sorted(measurements_cache, key=lambda m: datetime.fromisoformat(m['time']))
+    valid_vib = [m for m in sorted_measurements if isinstance(m.get("vibration"), (int, float))]
+    if len(valid_vib) < 3:
+        return
+    recent_vib = valid_vib[-3:]
+    node_id = measurement.get("node", "Unknown")
+    if recent_vib[0]["vibration"] < recent_vib[1]["vibration"] < recent_vib[2]["vibration"]:
+        current_vib = measurement.get("vibration")
+        if isinstance(current_vib, (int, float)):
+            warning_margin = 0.05
+            if current_vib >= VIBRATION_MAX - warning_margin:
+                print(f"Early Warning: {node_id} vibration reading is increasing and nearing its bound. Current value: {current_vib}")
+
 def analyze_and_process_node(measurement):
-    # Add current time if not present.
+    global measurements_cache, fiveminbuff
+
     if not measurement.get("time"):
         measurement["time"] = datetime.now().isoformat()
     measurements_cache.append(measurement)
     cutoff_time = datetime.now() - timedelta(hours=5)
     measurements_cache[:] = [m for m in measurements_cache if datetime.fromisoformat(m['time']) >= cutoff_time]
     update_csv_file()
-    
+
+    try:
+        current_time = datetime.fromisoformat(measurement["time"])
+    except Exception as e:
+        print(f"Error parsing measurement time: {measurement.get('time')} Error: {e}")
+        return
+
     node_id = measurement.get("node", "Unknown")
     reasons = []
     
-    # Temperature check
     temp = measurement.get("temperature")
     if temp is not None:
         if temp >= BME280_TEMP_MAX:
@@ -148,7 +176,6 @@ def analyze_and_process_node(measurement):
         if not (acceptable_temp_range[0] <= temp <= acceptable_temp_range[1]):
             reasons.append("Temperature out of range")
     
-    # Humidity check
     humid = measurement.get("humidity")
     if humid is not None:
         if humid >= HUMIDITY_MAX:
@@ -158,7 +185,6 @@ def analyze_and_process_node(measurement):
         if not (acceptable_humid_range[0] <= humid <= acceptable_humid_range[1]):
             reasons.append("Humidity out of range")
     
-    # Ambient light check
     light = measurement.get("ambient_light")
     if light is not None:
         if light >= VEML7700_MAX_LIGHT:
@@ -166,7 +192,6 @@ def analyze_and_process_node(measurement):
         if not (acceptable_light_range[0] <= light <= acceptable_light_range[1]):
             reasons.append("Ambient light out of range")
     
-    # Particle count check
     particle = measurement.get("particle_count")
     if particle is not None:
         if particle >= IH_PMC_001_MAX:
@@ -174,22 +199,18 @@ def analyze_and_process_node(measurement):
         if not (acceptable_particle_range[0] <= particle <= acceptable_particle_range[1]):
             reasons.append("Particle count out of range")
     
-    # Vibration check (only if valid list data provided)
     vib = measurement.get("vibration")
-    if isinstance(vib, list) and len(vib) >= 3:
-        x, y, z = vib[0], vib[1], vib[2]
-        if not (acceptable_vibration_range['x'][0] <= x <= acceptable_vibration_range['x'][1] and
-                acceptable_vibration_range['y'][0] <= y <= acceptable_vibration_range['y'][1] and
-                acceptable_vibration_range['z'][0] <= z <= acceptable_vibration_range['z'][1]):
-            reasons.append("Vibration out of range")
-    # If vibration is missing or not valid, we do not add an error here.
+    if vib is not None:
+        try:
+            if not (VIBRATION_MIN <= float(vib) <= VIBRATION_MAX):
+                reasons.append("Vibration out of range")
+        except Exception as e:
+            reasons.append("Invalid vibration data")
     
     if reasons:
-        msg = f"WARNING: {node_id} measurement out of bounds! Issues: {', '.join(reasons)}"
+        msg = f"WARNING: {node_id} measurement out of bounds! Issues detected: {', '.join(reasons)}"
         print(msg)
         save_out_of_range(measurement, "; ".join(reasons), "Surrounding error readings")
-        # Save context data for measurements within 5 minutes.
-        current_time = datetime.fromisoformat(measurement["time"])
         for m in measurements_cache:
             try:
                 t = datetime.fromisoformat(m["time"])
@@ -202,18 +223,16 @@ def analyze_and_process_node(measurement):
             'error_time': current_time,
             'deadline': current_time + timedelta(seconds=300)
         })
-    
-    # Process post-error context events.
-    current_time = datetime.fromisoformat(measurement["time"])
+
     for event in fiveminbuff.copy():
         if event['error_time'] < current_time <= event['deadline']:
             save_context_data(measurement, "Surrounding Errors (post)")
         if current_time > event['deadline']:
             fiveminbuff.remove(event)
     
+    check_early_warning(measurement)
     publish_to_mqtt(OUTPUT_TOPIC, measurement)
 
-# If message contains separate node dictionaries, process each individually.
 def process_node_data(node_data, node_name, overall_time):
     measurement = {
         "node": node_name,
@@ -234,13 +253,10 @@ def listen_to_topic_combined(topic):
                 line = line.strip()
                 if not line:
                     continue
-                print(f"DEBUG: Received message: {line}")
                 try:
                     message = json.loads(line)
-                    # If message is already flat (with "node"), process directly.
                     if "node" in message:
                         analyze_and_process_node(message)
-                    # Otherwise, if message contains separate node dictionaries, process each.
                     elif all(k in message for k in ["PL_data", "SC_data", "SP_data"]):
                         overall_time = message.get("time", datetime.now().isoformat())
                         process_node_data(message["PL_data"], "PL", overall_time)
