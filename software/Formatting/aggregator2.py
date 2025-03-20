@@ -8,12 +8,12 @@ import scipy.signal as signal
 import re
 
 # MQTT configuration
-#MQTT_BROKER = "localhost"
-#MQTT_PORT = 1337
+MQTT_BROKER = "localhost"
+MQTT_PORT = 1337
 
 # Local testing configuration
-MQTT_BROKER = "test.mosquitto.org"
-MQTT_PORT = 1883
+#MQTT_BROKER = "test.mosquitto.org"
+#MQTT_PORT = 1883
 
 # Dictionary to store data for three nodes
 PL_data = {"temperature": None, "humidity": None, "ambient_light":None, "vibration":None}
