@@ -7,6 +7,8 @@
 
 #ifdef SPIN_COATING
 
+
+// The first time this is run, it will fail. Don't know why. It just does. Doesn't impacy performance of the firmware
 void get_particle_count(uint16_t *reading)
 {
     // Command to read data, see data sheet
@@ -40,6 +42,8 @@ void get_particle_count(uint16_t *reading)
 
     // Wait for the response (12 bytes expected), allow up to 100 ms
     int length = uart_read_bytes(UART_PORT, read_buffer, sizeof(read_buffer), 100 / portTICK_PERIOD_MS);
+
+    // Validate response
     if (length == 7)
     {
         // This shouldn't overflow I don't think

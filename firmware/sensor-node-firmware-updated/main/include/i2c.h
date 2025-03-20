@@ -19,6 +19,8 @@
 #define ADXL_SCL_GPIO_PIN 15
 #define ADXL_SDA_GPIO_PIN 16
 
+#define TRANSMISSION_TIMEOUT_MS 50
+
 
 // Automatically select which I2C port to use
 #define I2C_PORT_AUTO -1
@@ -34,9 +36,15 @@
 #define I2C_SETUP_RETRY_DELAY 100
 
 // I2C addresses for each sensor
-#define BME_I2C_ADDRESS 0x77
+// Breadboard
+// #define BME_I2C_ADDRESS 0x77
+// #define VEML_I2C_ADDRESS 0x10
+// #define ADXL_I2C_ADDRESS 0x1D
+// PCB
+#define BME_I2C_ADDRESS 0x76
 #define VEML_I2C_ADDRESS 0x10
-#define ADXL_I2C_ADDRESS 0x1D
+#define ADXL_I2C_ADDRESS 0x53
+
 
 // Clock for BME280, VEML7700 operates at 100kHz
 #define I2C_CLOCK_SPEED 100000
@@ -67,5 +75,9 @@ void add_veml_i2c(void);
 
 /* Add the adxl vibration sensor as a device on the I2C bus */
 void add_adxl_i2c(void);
+
+esp_err_t i2c_transmit_sensor(i2c_master_dev_handle_t dev_handle, uint8_t *write_buffer, size_t write_len);
+
+esp_err_t i2c_transmit_receive_sensor(i2c_master_dev_handle_t dev_handle, uint8_t *write_buffer, size_t write_len, uint8_t *read_buffer, size_t read_len);
 
 #endif

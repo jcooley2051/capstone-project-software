@@ -74,6 +74,39 @@ void init_i2c(void)
     }
 }
 
+esp_err_t i2c_transmit_sensor(i2c_master_dev_handle_t dev_handle, uint8_t *write_buffer, size_t write_len)
+{
+    esp_err_t ret = ESP_OK;
+    int retry_count = 0;
+    do
+    {
+        ret = i2c_master_transmit(dev_handle, write_buffer, write_len, TRANSMISSION_TIMEOUT_MS);
+        retry_count++;
+        if (ret != ESP_OK)
+        {
+            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
+        }
+    } while(ret != ESP_OK && retry_count < I2C_SETUP_RETRY_COUNT);
+    return ret;
+}
+
+esp_err_t i2c_transmit_receive_sensor(i2c_master_dev_handle_t dev_handle, uint8_t *write_buffer, size_t write_len, uint8_t *read_buffer, size_t read_len)
+{
+    esp_err_t ret = ESP_OK;
+    int retry_count = 0;
+    do
+    {
+        ret = i2c_master_transmit_receive(dev_handle, write_buffer, write_len, read_buffer, read_len, TRANSMISSION_TIMEOUT_MS);
+        if (ret != ESP_OK)
+        {
+            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
+            retry_count++;
+        }
+    } while(ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
+    return ret;
+}
+
+
 #if defined(PHOTOLITHOGRAPHY) || defined(SPIN_COATING)
 void init_i2c_adxl(void)
 {
