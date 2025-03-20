@@ -17,8 +17,6 @@ INPUT_TOPIC = 'analysis/results'
 
 
 # Sensor configuration
-'''Photolithography, Spin Coating, and Sputtering Stations'''
-stations = ('PL', 'SC', 'Sp')
 """
 Create Python Tuples for each station containing that station's sensor types
 ~~~~~~TEMPLATE~~~~~~
@@ -44,9 +42,9 @@ Create Python Dictionary containing all stations
 ~~~~~~TEMPLATE~~~~~~
 STATIONS = {'St': St_sensors}
 """
-STATIONS = {'PL': PL_SENSORS,
-            'SC': SC_SENSORS,
-            'Sp': Sp_SENSORS}
+STATIONS = {'PL_data': PL_SENSORS,
+            'SC_data': SC_SENSORS,
+            'SP_data': Sp_SENSORS}
 
 # STATIONS DICTIONARY KEYS TO PACKET READINGS & TKINTER STRINGVARS
 # assume consistent with packet (minus time)
