@@ -82,6 +82,9 @@ void app_main(void)
     xTaskCreate(print_readings, "Readings Printing Task", 65536, NULL, 5, NULL);
 #endif
 
+    // Give Sensors time to take initial readings
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+
     // Start timer for tasks
     xTimerStart(sensor_timer, 0);
 

@@ -22,9 +22,6 @@ static bool bme280_config_error = false;
 // Configures the proper settings for our temperature and humidity readings
 void configure_bme280(void)
 {
-    esp_err_t ret = ESP_OK;
-    int retry_count = 0;
-
     // Holds bytes for writing
     uint8_t write_buffer[2];
 
@@ -36,18 +33,10 @@ void configure_bme280(void)
     }
 
     // Configure standby time and filter
+    esp_err_t ret = ESP_OK;
     write_buffer[0] = BME_CONFIG_REGISTER;
     write_buffer[1] = 0xD0; // 20ms stby time filter off (0b11100000)
-    do
-    {
-        ret = i2c_master_transmit(bme_handle, write_buffer, sizeof(write_buffer), portMAX_DELAY);
-        retry_count++;
-        if (ret != ESP_OK)
-        {
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while(ret != ESP_OK && retry_count < I2C_SETUP_RETRY_COUNT);
-    retry_count = 0;
+    ret = i2c_transmit_sensor(bme_handle, write_buffer, sizeof(write_buffer));
     if (ret != ESP_OK)
     {
         ESP_LOGE("configure_bme280", "Failed configuring setup time and filter for BME280");
@@ -57,16 +46,7 @@ void configure_bme280(void)
     // Configure Temperature sampling and mode
     write_buffer[0] = BME_CTRL_MEAS_REGISTER;
     write_buffer[1] = 0xA3; // 16x oversampling, normal mode (0b10100011)
-    do
-    {
-        ret = i2c_master_transmit(bme_handle, write_buffer, sizeof(write_buffer), portMAX_DELAY);
-        retry_count++;
-        if (ret != ESP_OK)
-        {
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while(ret != ESP_OK && retry_count < I2C_SETUP_RETRY_COUNT);
-    retry_count = 0;
+    ret = i2c_transmit_sensor(bme_handle, write_buffer, sizeof(write_buffer));
     if (ret != ESP_OK)
     {
         ESP_LOGE("configure_bme280", "Failed configuring temperature oversampling and mode for BME280");
@@ -76,15 +56,7 @@ void configure_bme280(void)
     // Configure Humidity Oversampling
     write_buffer[0] = BME_CTRL_HUM_REGISTER;
     write_buffer[1] = 0x05; // 16x oversampling (0b00000101)
-    do
-    {
-        ret = i2c_master_transmit(bme_handle, write_buffer, sizeof(write_buffer), portMAX_DELAY);
-        retry_count++;
-        if (ret != ESP_OK)
-        {
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while(ret != ESP_OK && retry_count < I2C_SETUP_RETRY_COUNT);
+    ret = i2c_transmit_sensor(bme_handle, write_buffer, sizeof(write_buffer));
     if (ret != ESP_OK)
     {
         ESP_LOGE("configure_bme280", "Failed configureing humidity oversampling for BME280");
@@ -113,19 +85,10 @@ void read_compensation_bme280(void)
     }
 
     // Read dig_T1
-    int retry_count = 0;
     esp_err_t ret = ESP_OK;
     write_buffer[0] = DIG_T1_REGISTER;
-    do
-    {
-        ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        if (ret != ESP_OK)
-        {
-            retry_count++;
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
-    
+    ret = i2c_transmit_receive_sensor(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, sizeof(read_buffer));
+
     if (ret != ESP_OK)
     {
         ESP_LOGE("read_compensation_bme280", "Failed to read dig_T1 from BME280");
@@ -135,18 +98,8 @@ void read_compensation_bme280(void)
     dig_T1 = (read_buffer[1] << 8) | read_buffer[0];
 
     // Read dig_T2
-    retry_count = 0;
-    write_buffer[0] = DIG_T2_REGISTER;
-    do
-    {
-        ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        if (ret != ESP_OK)
-        {
-            retry_count++;
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
-    
+    write_buffer[0] = DIG_T2_REGISTER; 
+    ret = i2c_transmit_receive_sensor(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, sizeof(read_buffer));
     if (ret != ESP_OK)
     {
         ESP_LOGE("read_compensation_bme280", "Failed to read dig_T2 from BME280");
@@ -156,18 +109,8 @@ void read_compensation_bme280(void)
     dig_T2 = (read_buffer[1] << 8) | read_buffer[0];
 
     // Read dig_T3
-    retry_count = 0;
     write_buffer[0] = DIG_T3_REGISTER;
-    do
-    {
-        ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        if (ret != ESP_OK)
-        {
-            retry_count++;
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
-    
+    ret = i2c_transmit_receive_sensor(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, sizeof(read_buffer));
     if (ret != ESP_OK)
     {
         ESP_LOGE("read_compensation_bme280", "Failed to read dig_T3 from BME280");
@@ -177,19 +120,8 @@ void read_compensation_bme280(void)
     dig_T3 = (read_buffer[1] << 8) | read_buffer[0];  
 
     // Read dig_H1
-    retry_count = 0;
     write_buffer[0] = DIG_H1_REGISTER;
-    do
-    {
-        ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1, portMAX_DELAY);
-        if (ret != ESP_OK)
-        {
-            retry_count++;
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
-    
-    
+    ret = i2c_transmit_receive_sensor(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1);
     if (ret != ESP_OK)
     {
         ESP_LOGE("read_compensation_bme280", "Failed to read dig_H1 from BME280");
@@ -199,18 +131,8 @@ void read_compensation_bme280(void)
     dig_H1 = read_buffer[0];
 
     // Read dig_H2
-    retry_count = 0;
     write_buffer[0] = DIG_H2_REGISTER;
-    do
-    {
-        ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        if (ret != ESP_OK)
-        {
-            retry_count++;
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
-    
+    ret = i2c_transmit_receive_sensor(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, sizeof(read_buffer));
     if (ret != ESP_OK)
     {
         ESP_LOGE("read_compensation_bme280", "Failed to read dig_H2 from BME280");
@@ -220,18 +142,8 @@ void read_compensation_bme280(void)
     dig_H2 = (read_buffer[1] << 8) | read_buffer[0];
 
     // Read dig_H3
-    retry_count = 0;
     write_buffer[0] = DIG_H3_REGISTER;
-    do
-    {
-        ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1, portMAX_DELAY);
-        if (ret != ESP_OK)
-        {
-            retry_count++;
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
-    
+    ret = i2c_transmit_receive_sensor(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1);
     if (ret != ESP_OK)
     {
         ESP_LOGE("read_compensation_bme280", "Failed to read dig_H3 from BME280");
@@ -241,18 +153,8 @@ void read_compensation_bme280(void)
     dig_H3 = read_buffer[0];
 
     // Read dig_H4
-    retry_count = 0;
     write_buffer[0] = DIG_H4_REGISTER;
-    do
-    {
-        ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        if (ret != ESP_OK)
-        {
-            retry_count++;
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
-    
+    ret = i2c_transmit_receive_sensor(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, sizeof(read_buffer));
     if (ret != ESP_OK)
     {
         ESP_LOGE("read_compensation_bme280", "Failed to read dig_H4 from BME280");
@@ -262,18 +164,8 @@ void read_compensation_bme280(void)
     dig_H4 = (read_buffer[0] << 4) | (read_buffer[1] & 0xF);
 
     // Read dig_H5
-    retry_count = 0;
     write_buffer[0] = DIG_H5_REGISTER;
-    do
-    {
-        ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 2, portMAX_DELAY);
-        if (ret != ESP_OK)
-        {
-            retry_count++;
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
-    
+    ret = i2c_transmit_receive_sensor(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, sizeof(read_buffer));
     if (ret != ESP_OK)
     {
         ESP_LOGE("read_compensation_bme280", "Failed to read dig_H5 from BME280");
@@ -283,18 +175,8 @@ void read_compensation_bme280(void)
     dig_H5 = (read_buffer[1] << 4) | ((read_buffer[0] & 0xF0) >> 4);
 
     // Read dig_H6
-    retry_count = 0;
     write_buffer[0] = DIG_H6_REGISTER;
-    do
-    {
-        ret = i2c_master_transmit_receive(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1, portMAX_DELAY);
-        if (ret != ESP_OK)
-        {
-            retry_count++;
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-        }
-    } while (ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
-    
+    ret = i2c_transmit_receive_sensor(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, 1);
     if (ret != ESP_OK)
     {
         ESP_LOGE("read_compensation_bme280", "Failed to read dig_H6 from BME280");
@@ -314,9 +196,6 @@ void read_compensation_bme280(void)
 // Function to get temperature and humidity readings from the BME280, they need to be together because temperature is used in calculating the RH
 void get_temp_and_humidity(temp_and_humidity_t *readings)
 {
-    int retry_count = 0;
-    esp_err_t ret = ESP_OK;
-
     // Starting address for temperature and humidity readings
     uint8_t write_buffer[1] = {BME_READINGS_REGISTER};
     uint8_t read_buffer[8]; 
@@ -328,15 +207,8 @@ void get_temp_and_humidity(temp_and_humidity_t *readings)
         abort();
     }
 
-    do
-    {
-        ret = i2c_master_transmit_receive(bme_handle, write_buffer, 1, read_buffer, 8, portMAX_DELAY);
-        if (ret != ESP_OK)
-        {
-            vTaskDelay(I2C_TRANSMISSION_RETRY_DELAY / portTICK_PERIOD_MS);
-            retry_count++;
-        }
-    } while(ret != ESP_OK && retry_count < I2C_TRANSACTION_RETRY_COUNT);
+    esp_err_t ret = ESP_OK;
+    ret = i2c_transmit_receive_sensor(bme_handle, write_buffer, sizeof(write_buffer), read_buffer, sizeof(read_buffer));
 
     // Release bus
     if (xSemaphoreGive(i2c_mutex) != pdTRUE)
@@ -347,6 +219,7 @@ void get_temp_and_humidity(temp_and_humidity_t *readings)
 
     // If there is a failure in the reading, set a dummy value of (-500C, 150% humidity to be detected by analysis software)
     if (bme280_config_error == true || ret != ESP_OK) {
+        ESP_LOGE("get_temp_and_humidity", "Error taking sensor reading, using dummy values");
         readings->temp_reading = DUMMY_TEMP_READING;
         readings->humidity_reading = DUMMY_HUMIDITY_READING;
         return;
