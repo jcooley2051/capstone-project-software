@@ -204,6 +204,48 @@ void mqtt_publish(void *arg)
 #endif
 
 #ifdef TEST_MODE
+// Sign-extend a 20-bit value
+int32_t sign_extend_20bit(uint32_t value) 
+{
+    if (value & 0x80000)
+        value |= 0xFFF00000;  // Extend to 32 bits
+    return (int32_t)value;
+}
+
+void print_acceleration(all_readings_t *readings) 
+{
+    if (!readings || !readings->vibration_reading) {
+        printf("Invalid readings.\n");
+        return;
+    }
+
+    const char *hex = readings->vibration_reading;
+    const int total_readings = 250;
+    const int bytes_per_reading = 9;
+
+    for (int i = 0; i < total_readings; i++) {
+        if (i % 25 != 0) continue;  // Only print every 25th reading
+
+        uint8_t buffer[9];
+        for (int j = 0; j < bytes_per_reading; j++) {
+            char byte_str[3] = { hex[(i * bytes_per_reading + j) * 2],
+                                 hex[(i * bytes_per_reading + j) * 2 + 1],
+                                 '\0' };
+            buffer[j] = (uint8_t)strtol(byte_str, NULL, 16);
+        }
+
+        int32_t x = (buffer[0] << 12) | (buffer[1] << 4) | (buffer[2] >> 4);
+        int32_t y = (buffer[3] << 12) | (buffer[4] << 4) | (buffer[5] >> 4);
+        int32_t z = (buffer[6] << 12) | (buffer[7] << 4) | (buffer[8] >> 4);
+
+        x = sign_extend_20bit(x);
+        y = sign_extend_20bit(y);
+        z = sign_extend_20bit(z);
+
+        printf("Reading %3d: X=%0.2f, Y=%0.2f, Z=%0.2f\n", i + 1, ((float)x / 256000)*9.81 , ((float)y / 256000)*9.81, ((float)z / 256000)*9.81);
+    }
+}
+
 void print_readings(void *arg)
 {
     temp_and_humidity_t bne_readings;
@@ -249,6 +291,7 @@ void print_readings(void *arg)
 
         get_message(message, sizeof(message), &readings);
         printf("%s\n", message);
+        print_acceleration(&readings);
 
         uptime++;
         printf("Uptime (S): %ld\n", uptime);
