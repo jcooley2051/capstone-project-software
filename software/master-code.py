@@ -8,9 +8,9 @@ import time
 #     "gui":        "python3 /home/admin/Documents/capstone-project-software/software/GUI/GUIv5.py"
 # }
 scripts = {
-    "aggregator": "python3 /Users/jacobcooley/Desktop/capstone/capstone-project-software/software/Formatting/aggregator2.py",
-    "analyzer":   "python3 /Users/jacobcooley/Desktop/capstone/capstone-project-software/software/testing/analysis.py",
-    "gui":        "python3 /Users/jacobcooley/Desktop/capstone/capstone-project-software/software/GUI/GUIv7.py"
+    "aggregator": "python3 /home/admin/Documents/capstone-project-software/software/Formatting/aggregator2.py",
+    "analyzer":   "python3 /home/admin/Documents/capstone-project-software/software/testing/analysis.py",
+    "gui":        "python3 /home/admin/Documents/capstone-project-software/software/GUI/GUIv7.py"
 }
 
 # Dictionary to hold the running process objects.
