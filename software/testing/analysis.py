@@ -8,7 +8,7 @@ from threading import Thread
 
 # MQTT Configuration
 MQTT_BROKER = "localhost"
-MQTT_PORT = 1337
+MQTT_PORT = 1883
 OUTPUT_TOPIC = "analysis/results"
 INPUT_TOPIC = "reading/formatted"
 
@@ -18,7 +18,7 @@ acceptable_humid_range = (30, 70)      # Humidity in %
 acceptable_light_range = (0, 30)       # Ambient light in lux
 acceptable_particle_range = (0, 1000)  # Particle count
 
-# New vibration limits
+# Vibration limits
 VIBRATION_MIN = 0.0
 VIBRATION_MAX = 0.5
 
@@ -41,11 +41,9 @@ measurements_cache = []
 # Global list to store error events in a 5-minute buffer.
 fiveminbuff = []
 
-# If there is none, convert to empty string.
 def safe_str(val):
     return str(val) if val is not None else ""
 
-# Creation of all CSV files.
 def initialize_csv():
     with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
@@ -60,7 +58,6 @@ def initialize_csv():
         writer.writerow(["Node", "Temperature (°C)", "Humidity (%)", "Ambient Light (lux)",
                          "Particle Count", "Vibration", "Timestamp", "Context Type"])
 
-# Updates CSV with newest readings.
 def update_csv_file():
     sorted_measurements = sorted(measurements_cache, key=lambda m: datetime.fromisoformat(m['time']), reverse=True)
     with open(CSV_FILE, mode='w', newline='', encoding='utf-8') as file:
@@ -78,7 +75,6 @@ def update_csv_file():
                 safe_str(m.get("time"))
             ])
 
-# Saves all out of range readings.
 def save_out_of_range(measurement, reason, context):
     with open(OUT_OF_RANGE_FILE, mode='a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
@@ -94,7 +90,6 @@ def save_out_of_range(measurement, reason, context):
             safe_str(context)
         ])
 
-# Save 5 minutes before and after an out-of-range reading.
 def save_context_data(measurement, context_type):
     with open(CONTEXT_FILE, mode='a', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
@@ -109,7 +104,6 @@ def save_context_data(measurement, context_type):
             safe_str(context_type)
         ])
 
-# Check to make sure MQTT is set up.
 def wait_for_mqtt_connection():
     while True:
         try:
@@ -131,14 +125,6 @@ def publish_to_mqtt(topic, message):
     ]
     subprocess.run(command)
 
-def check_null(data):
-    if (data["PL_data"].get("temperature") is None and
-        data["SC_data"].get("temperature") is None and
-        data["SP_data"].get("temperature") is None):
-        return True
-    return False
-
-# Modified early warning function that returns True if an early warning condition is met.
 def check_early_warning(measurement):
     node_id = measurement.get("node", "Unknown")
     node_measurements = [m for m in measurements_cache if m.get("node", "Unknown") == node_id]
@@ -155,29 +141,28 @@ def check_early_warning(measurement):
         'vibration': VIBRATION_MAX
     }
     warning_margins = {
-        'temperature': 2,      # degrees Celsius
-        'humidity': 5,         # percentage points
-        'ambient_light': 2,    # lux
-        'particle_count': 100, # particle count units
-        'vibration': 0.05      # vibration units
+        'temperature': 2,
+        'humidity': 5,
+        'ambient_light': 2,
+        'particle_count': 100,
+        'vibration': 0.05
     }
     
-    sensors = ['temperature', 'humidity', 'ambient_light', 'particle_count', 'vibration']
     triggered = False
-    for sensor in sensors:
+    for sensor in ['temperature', 'humidity', 'ambient_light', 'particle_count', 'vibration']:
         if sensor not in recent[0] or sensor not in recent[1] or sensor not in recent[2]:
             continue
         if recent[0][sensor] < recent[1][sensor] < recent[2][sensor]:
             if sensor in measurement and isinstance(measurement[sensor], (int, float)):
                 if measurement[sensor] >= acceptable_max[sensor] - warning_margins[sensor]:
-                    print(f"Early Warning: {sensor} reading for node {node_id} is gradually increasing and nearing its bound. Current value: {measurement[sensor]}")
+                    print(f"Early Warning: {sensor} reading for node {node_id} is increasing and nearing its bound. Current value: {measurement[sensor]}")
                     triggered = True
     return triggered
 
-# analyze_and_process_node updates caches, CSVs, and warnings.
 def analyze_and_process_node(measurement, publish=True):
     global measurements_cache, fiveminbuff
 
+    # If no time is provided, assign current time.
     if not measurement.get("time"):
         measurement["time"] = datetime.now().isoformat()
     measurements_cache.append(measurement)
@@ -188,7 +173,7 @@ def analyze_and_process_node(measurement, publish=True):
     try:
         current_time = datetime.fromisoformat(measurement["time"])
     except Exception as e:
-        print(f"Error parsing measurement time: {measurement.get('time')} Error: {e}")
+        print(f"Error parsing time: {measurement.get('time')} Error: {e}")
         return
 
     node_id = measurement.get("node", "Unknown")
@@ -235,8 +220,7 @@ def analyze_and_process_node(measurement, publish=True):
             reasons.append("Invalid vibration data")
     
     if reasons:
-        msg = f"WARNING: {node_id} measurement out of bounds! Issues detected: {', '.join(reasons)}"
-        print(msg)
+        print(f"WARNING: {node_id} measurement out of bounds! Issues: {', '.join(reasons)}")
         save_out_of_range(measurement, "; ".join(reasons), "Surrounding error readings")
         for m in measurements_cache:
             try:
@@ -253,7 +237,6 @@ def analyze_and_process_node(measurement, publish=True):
             'node': node_id
         })
     
-    # Determine overall status based on sensor checks and early warning.
     early_warning_flag = check_early_warning(measurement)
     if reasons:
         measurement["status"] = "bad"
@@ -268,7 +251,6 @@ def analyze_and_process_node(measurement, publish=True):
         if current_time > event['deadline']:
             fiveminbuff.remove(event)
     
-    # Create a copy of the measurement for publishing units without altering the cached raw data.
     publish_measurement = measurement.copy()
     sensor_units = {
         "temperature": " °C",
@@ -286,14 +268,13 @@ def analyze_and_process_node(measurement, publish=True):
                 if not str(publish_measurement[sensor]).endswith(unit):
                     publish_measurement[sensor] = f"{publish_measurement[sensor]}{unit}"
     
-    # Remove timestamp and node before publishing
+    # Remove the node information but keep the shared timestamp in the overall message.
     publish_measurement.pop("node", None)
-    publish_measurement.pop("time", None)
     
     if publish:
         publish_to_mqtt(OUTPUT_TOPIC, publish_measurement)
 
-# process_node_data now builds the measurement dictionary only with available sensor keys.
+# For combined messages, we use one overall timestamp and remove individual timestamps from sensor data.
 def process_node_data(node_data, node_name, overall_time, publish=True):
     measurement = {"node": node_name, "time": overall_time}
     if node_data.get("temperature") is not None:
@@ -309,7 +290,6 @@ def process_node_data(node_data, node_name, overall_time, publish=True):
     
     analyze_and_process_node(measurement, publish=publish)
     
-    # Create a copy with units appended to return for combined messages.
     published_measurement = measurement.copy()
     sensor_units = {
         "temperature": " °C",
@@ -326,12 +306,11 @@ def process_node_data(node_data, node_name, overall_time, publish=True):
             except Exception:
                 if not str(published_measurement[sensor]).endswith(unit):
                     published_measurement[sensor] = f"{published_measurement[sensor]}{unit}"
-    # Remove timestamp and node before returning
+    # Remove both "node" and "time" so that individual sensor data don't include a timestamp.
     published_measurement.pop("node", None)
     published_measurement.pop("time", None)
     return published_measurement
 
-# When a combined message is received, process each station without publishing individually.
 def listen_to_topic_combined(topic):
     command = ["mosquitto_sub", "-h", MQTT_BROKER, "-p", str(MQTT_PORT), "-t", topic]
     try:
@@ -342,18 +321,21 @@ def listen_to_topic_combined(topic):
                     continue
                 try:
                     message = json.loads(line)
+                    # Direct measurement processing.
                     if "node" in message:
                         analyze_and_process_node(message)
+                    # For combined messages, extract one overall timestamp.
                     elif all(k in message for k in ["PL_data", "SC_data", "SP_data"]):
                         overall_time = message.get("time", datetime.now().isoformat())
                         pl_measurement = process_node_data(message["PL_data"], "PL", overall_time, publish=False)
                         sc_measurement = process_node_data(message["SC_data"], "SC", overall_time, publish=False)
                         sp_measurement = process_node_data(message["SP_data"], "SP", overall_time, publish=False)
-                        # Do not include the overall timestamp in the combined message
                         combined_message = {
                             "PL_data": pl_measurement,
                             "SC_data": sc_measurement,
-                            "SP_data": sp_measurement
+                            "SP_data": sp_measurement,
+                            # Add one overall timestamp at the end.
+                            "time": overall_time
                         }
                         publish_to_mqtt(OUTPUT_TOPIC, combined_message)
                     else:
