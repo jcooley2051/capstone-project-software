@@ -8,7 +8,7 @@ from threading import Thread
 
 # MQTT Configuration
 MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
+MQTT_PORT = 1337
 OUTPUT_TOPIC = "analysis/results"
 INPUT_TOPIC = "reading/formatted"
 
@@ -286,6 +286,10 @@ def analyze_and_process_node(measurement, publish=True):
                 if not str(publish_measurement[sensor]).endswith(unit):
                     publish_measurement[sensor] = f"{publish_measurement[sensor]}{unit}"
     
+    # Remove timestamp and node before publishing
+    publish_measurement.pop("node", None)
+    publish_measurement.pop("time", None)
+    
     if publish:
         publish_to_mqtt(OUTPUT_TOPIC, publish_measurement)
 
@@ -322,6 +326,9 @@ def process_node_data(node_data, node_name, overall_time, publish=True):
             except Exception:
                 if not str(published_measurement[sensor]).endswith(unit):
                     published_measurement[sensor] = f"{published_measurement[sensor]}{unit}"
+    # Remove timestamp and node before returning
+    published_measurement.pop("node", None)
+    published_measurement.pop("time", None)
     return published_measurement
 
 # When a combined message is received, process each station without publishing individually.
@@ -342,11 +349,11 @@ def listen_to_topic_combined(topic):
                         pl_measurement = process_node_data(message["PL_data"], "PL", overall_time, publish=False)
                         sc_measurement = process_node_data(message["SC_data"], "SC", overall_time, publish=False)
                         sp_measurement = process_node_data(message["SP_data"], "SP", overall_time, publish=False)
+                        # Do not include the overall timestamp in the combined message
                         combined_message = {
                             "PL_data": pl_measurement,
                             "SC_data": sc_measurement,
-                            "SP_data": sp_measurement,
-                            "time": overall_time
+                            "SP_data": sp_measurement
                         }
                         publish_to_mqtt(OUTPUT_TOPIC, combined_message)
                     else:
