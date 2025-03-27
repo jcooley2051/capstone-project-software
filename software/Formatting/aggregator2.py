@@ -9,7 +9,7 @@ import re
 
 # MQTT configuration
 MQTT_BROKER = "localhost"
-MQTT_PORT = 1337
+MQTT_PORT = 1883
 
 # Local testing configuration
 #MQTT_BROKER = "test.mosquitto.org"
@@ -92,9 +92,9 @@ def process_acceleration(temp_buffer):
     accel_data = decode_sensor_readings(buffer_bytes)
     filtered_accel = high_pass_filter(accel_data)
     #averages = np.mean(filtered_accel, axis=0)
-    accel_x_avg = np.mean(filtered_accel[:, 0])  # Average of x-component
-    accel_y_avg = np.mean(filtered_accel[:, 1])  # Average of y-component
-    accel_z_avg = np.mean(filtered_accel[:, 2])  # Average of z-component
+    accel_x_avg = np.max(filtered_accel[:, 0])  # Average of x-component
+    accel_y_avg = np.max(filtered_accel[:, 1])  # Average of y-component
+    accel_z_avg = np.max(filtered_accel[:, 2])  # Average of z-component
 
     # Compute net magnitude of acceleration (m/s^2)
     accel_magnitude = np.sqrt(accel_x_avg**2 + accel_y_avg**2 + accel_z_avg**2)
@@ -146,7 +146,6 @@ def listen_to_topic(topic, key):
                         # Check if all threads have updated data
                         if not check_null(data):  
                             data["time"] = datetime.now().isoformat()  # Update the timestamp
-
                             # Publish the data to MQTT
                             publish_to_mqtt(data)
                                 
@@ -163,9 +162,9 @@ def listen_to_topic(topic, key):
             time.sleep(5)
 
 # Create threads to listen to each node
-PL_thread = Thread(target=listen_to_topic, args=("topic/PL", "PL_thread"))
-SC_thread = Thread(target=listen_to_topic, args=("topic/SC", "SC_thread"))
-SP_thread = Thread(target=listen_to_topic, args=("topic/SP", "SP_thread"))
+PL_thread = Thread(target=listen_to_topic, args=("topic/PL", "PL_thread"), daemon=True)
+SC_thread = Thread(target=listen_to_topic, args=("topic/SC", "SC_thread"), daemon=True)
+SP_thread = Thread(target=listen_to_topic, args=("topic/SP", "SP_thread"), daemon=True)
 
 # Start both threads
 PL_thread.start()

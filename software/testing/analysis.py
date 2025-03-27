@@ -16,10 +16,10 @@ INPUT_TOPIC = "reading/formatted"
 acceptable_temp_range = (18, 30)     # Temperature in °C
 acceptable_humid_range = (30, 70)      # Humidity in %
 acceptable_light_range = (0, 30)       # Ambient light in lux
-acceptable_particle_range = (0, 1000)  # Particle count
+acceptable_particle_range = (0, 100)  # Particle count
 
 # Vibration limits
-VIBRATION_MIN = 0.0
+VIBRATION_MIN = -0.5
 VIBRATION_MAX = 0.5
 
 # Sensor extreme values
@@ -348,6 +348,6 @@ def listen_to_topic_combined(topic):
 initialize_csv()
 wait_for_mqtt_connection()
 
-combined_thread = Thread(target=listen_to_topic_combined, args=(INPUT_TOPIC,))
+combined_thread = Thread(target=listen_to_topic_combined, args=(INPUT_TOPIC,), daemon=True)
 combined_thread.start()
 combined_thread.join()
