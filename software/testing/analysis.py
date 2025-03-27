@@ -140,6 +140,10 @@ def check_early_warning(measurement):
         'particle_count': acceptable_particle_range[1],
         'vibration': VIBRATION_MAX
     }
+    acceptable_min = {
+        'temperature': acceptable_temp_range[0],
+        'humidity': acceptable_humid_range[0],
+    }
     warning_margins = {
         'temperature': 2,
         'humidity': 5,
@@ -156,6 +160,11 @@ def check_early_warning(measurement):
             if sensor in measurement and isinstance(measurement[sensor], (int, float)):
                 if measurement[sensor] >= acceptable_max[sensor] - warning_margins[sensor]:
                     print(f"Early Warning: {sensor} reading for node {node_id} is increasing and nearing its bound. Current value: {measurement[sensor]}")
+                    triggered = True
+         if recent[0][sensor] > recent[1][sensor] > recent[2][sensor]:
+            if sensor in measurement and isinstance(measurement[sensor], (int, float)) and sensor in acceptable_min:
+                if measurement[sensor] <= acceptable_min[sensor] + warning_margins[sensor]:
+                    print(f"Early Warning: {sensor} reading for node {node_id} is decreasing and nearing its bound. Current value: {measurement[sensor]}")
                     triggered = True
     return triggered
 
