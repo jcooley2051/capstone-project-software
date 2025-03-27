@@ -40,9 +40,9 @@ import sys
 
 # Dictionary of script names and their corresponding commands.
 scripts = {
-    "aggregator": "python3 ./Formatting/aggregator2.py",
-    "analyzer":   "python3 ./testing/analysis.py",
-    "gui":        "python3 ./GUI/GUIv8.py"
+    "aggregator": "python3 /home/admin/Documents/capstone-project-software/software/Formatting/aggregator2.py",
+    "analyzer":   "python3 /home/admin/Documents/capstone-project-software/software/testing/analysis.py",
+    "gui":        "python3 /home/admin/Documents/capstone-project-software/software/GUI/GUIv8.py"
 }
 
 # Dictionary to hold the running process objects.
