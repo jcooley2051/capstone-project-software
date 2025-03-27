@@ -9,7 +9,7 @@ import re
 
 # MQTT configuration
 MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
+MQTT_PORT = 1337
 
 # Local testing configuration
 #MQTT_BROKER = "test.mosquitto.org"
