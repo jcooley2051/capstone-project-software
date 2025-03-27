@@ -8,7 +8,7 @@ from threading import Thread
 
 # MQTT Configuration
 MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
+MQTT_PORT = 1337
 OUTPUT_TOPIC = "analysis/results"
 INPUT_TOPIC = "reading/formatted"
 
@@ -144,7 +144,7 @@ def check_early_warning(measurement):
         'temperature': 2,
         'humidity': 5,
         'ambient_light': 2,
-        'particle_count': 100,
+        'particle_count': 10,
         'vibration': 0.05
     }
     
@@ -239,11 +239,11 @@ def analyze_and_process_node(measurement, publish=True):
     
     early_warning_flag = check_early_warning(measurement)
     if reasons:
-        measurement["status"] = "bad"
+        measurement["status"] = "Bad"
     elif early_warning_flag:
-        measurement["status"] = "degraded"
+        measurement["status"] = "Degraded"
     else:
-        measurement["status"] = "good"
+        measurement["status"] = "Good"
     
     for event in fiveminbuff.copy():
         if event['node'] == node_id and event['error_time'] < current_time <= event['deadline']:
