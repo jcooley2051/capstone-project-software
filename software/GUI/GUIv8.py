@@ -12,7 +12,7 @@ root.title('Hackerfab Monitoring System')
 
 # MQTT configuration
 MQTT_BROKER = 'localhost'
-MQTT_PORT = '1883'
+MQTT_PORT = '1337'
 INPUT_TOPIC = 'analysis/results'
 
 # Sensor configuration
