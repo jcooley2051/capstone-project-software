@@ -135,17 +135,21 @@ def listen_to_topic(topic, key):
                     # Check which thread received data and update corresponding embedded dictionary
                     with data_lock:  # Use the lock to ensure thread safety
                         if key == "PL_thread":
-                            data["PL_data"].update(json.loads(line))
+                            new_data = json.loads(line)
+                            data["PL_data"] = {key: new_data[key] if key in new_data else data["PL_data"][key] for key in data["PL_data"]}
                             data["PL_data"]["vibration"] = process_acceleration(data["PL_data"]["vibration"]) # Process acceleration
                         elif key == "SC_thread":
-                            data["SC_data"].update(json.loads(line)) 
+                            new_data = json.loads(line)
+                            data["SC_data"] = {key: new_data[key] if key in new_data else data["SC_data"][key] for key in data["SC_data"]}
                             data["SC_data"]["vibration"] = process_acceleration(data["SC_data"]["vibration"]) # Process acceleration
                         elif key == "SP_thread":
-                            data["SP_data"].update(json.loads(line))
+                            new_data = json.loads(line)
+                            data["SP_data"] = {key: new_data[key] if key in new_data else data["SP_data"][key] for key in data["SP_data"]}
 
                         # Check if all threads have updated data
                         if not check_null(data):  
-                            data["time"] = datetime.now().isoformat()  # Update the timestamp
+                            data["time"] = datetime.now().replace(microsecond=0).isoformat()  # Update the timestamp
+                           
                             # Publish the data to MQTT
                             publish_to_mqtt(data)
                                 
