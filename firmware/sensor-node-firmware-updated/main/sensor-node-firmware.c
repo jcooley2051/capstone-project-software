@@ -11,6 +11,7 @@
 #include "mqtt.h"
 #include "timer.h"
 #include "tasks.h"
+#include "adc-battery.h"
 
 
 // Entry point for firmware //
@@ -34,6 +35,9 @@ void app_main(void)
 #endif
     // Initialize the I2C buses and mutexes
     init_i2c();
+
+    // Initialize the ADC to read battery voltage
+    init_adc();
 
     // Add BME280 temperature and humidity sensor to I2C bus and configure
     add_bme_i2c();
@@ -77,9 +81,11 @@ void app_main(void)
 #endif
 #ifdef PROD_MODE
     xTaskCreate(mqtt_publish, "MQTT Publishing Task", 65536, NULL, 5, NULL);
+    xTaskCreate(publish_battery_readings, "Battery Readings Task", 2048, NULL, 0, NULL);
 #endif
 #ifdef TEST_MODE
     xTaskCreate(print_readings, "Readings Printing Task", 65536, NULL, 5, NULL);
+    xTaskCreate(print_battery_readings, "Battery Readings Task", 2048, NULL, 0, NULL);
 #endif
 
     // Give Sensors time to take initial readings

@@ -7,6 +7,7 @@
 #include "veml7700-light-sensor.h"
 #include "ih-ipm-particle-sensor.h"
 #include "adxl-vibration-sensor.h"
+#include "adc-battery.h"
 #include "mqtt.h"
 #include "mqtt_client.h"
 #include "freertos/message_buffer.h"
@@ -101,6 +102,54 @@ void vibration_readings(void *arg)
         xMessageBufferSend(vibration_message_buffer, hex_buffer, sizeof(hex_buffer), portMAX_DELAY);
     }
 }
+
+#ifdef TEST_MODE
+void print_battery_readings(void * arg)
+{
+    int voltage_mV = 0;
+    while(1)
+    {
+        get_battery_voltage(&voltage_mV);
+        printf("Voltage: %f", ((float)voltage_mV)/1000);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+#endif
+#ifdef PROD_MODE
+void publish_battery_readings(void * arg)
+{
+    char buff[30];
+    int buff_len = 30;
+    int voltage_mV = 0;
+    while(1)
+    {
+    
+        get_battery_voltage(&voltage_mV);
+        if (snprintf(buff, buff_len, "{\"battery_voltage\": %0.2f}", ((float)voltage_mV)/1000) < 0)
+        {
+            ESP_LOGE("publish_battery_readings","Error: something happened while generating mqtt message");
+            error_counter++;
+        }
+        int ret = esp_mqtt_client_publish(mqtt_client, BATTERY_TOPIC, buff, 0, 1, 0);
+        if (ret == -1)
+        {
+            ESP_LOGE("publish_battery_readings", "Error: Failed to publish to MQTT broker");
+            error_counter++;
+        }
+        else if (ret == -2)
+        {
+            ESP_LOGE("publish_battery_readings", "Error: MQTT outbox full");
+            error_counter++;
+        }
+        if (error_counter > ERROR_COUNT_THRESHOLD)
+        {
+            ESP_LOGE("publish_battery_readings", "Error: We are getting lots of errors, rebooting...");
+            esp_restart();
+        }
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
+    }
+}
+#endif
 
 void get_message(char *buff, size_t buff_len, all_readings_t *readings)
 {
