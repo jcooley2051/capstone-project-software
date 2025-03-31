@@ -20,6 +20,8 @@ void light_readings(void *arg);
 void particle_count_readings(void *arg);
 void vibration_readings(void *arg);
 void mqtt_publish(void *arg);
+void print_battery_readings(void * arg);
+void publish_battery_readings(void * arg);
 void print_readings(void *arg);
 void get_message(char *buff, size_t buff_len, all_readings_t *readings);
 void print_acceleration(all_readings_t *readings);

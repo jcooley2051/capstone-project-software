@@ -8,19 +8,23 @@
 
 #define MQTT_TAG "MQTT:"
 
-#define MQTT_BROKER_URI "mqtt://192.168.50.170:1883"
+#define MQTT_BROKER_URI "mqtt://10.42.0.1:1337"
 
 #if defined(PHOTOLITHOGRAPHY) && defined(SPUTTERING) && defined(SPIN_COATING)
     #define MQTT_TOPIC "topic/test"
+    #define BATTERY_TOPIC "topic/test_battery"
 #else
 #ifdef PHOTOLITHOGRAPHY 
-    #define MQTT_TOPIC "topic/photolithography"
+    #define MQTT_TOPIC "topic/PL"
+    #define BATTERY_TOPIC "topic/PL_battery"
 #endif
 #ifdef SPUTTERING 
-    #define MQTT_TOPIC "topic/sputtering"
+    #define MQTT_TOPIC "topic/SP"
+    #define BATTERY_TOPIC "topic/SP_battery"
 #endif
 #ifdef SPIN_COATING 
-    #define MQTT_TOPIC "topic/spin_coating"
+    #define MQTT_TOPIC "topic/SC"
+    #define BATTERY_TOPIC "topic/SC_battery"
 #endif
 #endif
 

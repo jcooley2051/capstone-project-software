@@ -5,7 +5,7 @@
 #include "freertos/semphr.h"
 
 // Wifi credentials
-#define WIFI_SSID ""
+#define WIFI_SSID "Hackerfab Monitor"
 #define WIFI_PASSWORD ""
 
 #define WIFI_EVENT_TAG "WiFi Station:"
