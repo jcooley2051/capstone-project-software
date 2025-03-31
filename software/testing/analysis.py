@@ -8,7 +8,7 @@ from threading import Thread
 
 # MQTT Configuration
 MQTT_BROKER = "localhost"
-MQTT_PORT = 1337
+MQTT_PORT = 1883
 OUTPUT_TOPIC = "analysis/results"
 INPUT_TOPIC = "reading/formatted"
 
@@ -16,7 +16,7 @@ INPUT_TOPIC = "reading/formatted"
 acceptable_temp_range = (18, 30)     # Temperature in °C
 acceptable_humid_range = (30, 70)      # Humidity in %
 acceptable_light_range = (0, 30)       # Ambient light in lux
-acceptable_particle_range = (0, 100)  # Particle count
+acceptable_particle_range = (0, 100)   # Particle count
 
 # Vibration limits
 VIBRATION_MIN = -0.5
@@ -247,7 +247,16 @@ def analyze_and_process_node(measurement, publish=True):
         })
     
     early_warning_flag = check_early_warning(measurement)
-    if reasons:
+    
+    # NEW: Check for disconnected sensor values
+    if ((temp is not None and temp == -500) or
+        (humid is not None and humid == 150) or
+        (particle is not None and particle == 65535) or
+        (light is not None and light == -1000) or
+        (vib is not None and vib == -1)):
+        print(f"INFO: {node_id} measurement marked as disconnected due to sensor readings.")
+        measurement["status"] = "Disconnected"
+    elif reasons:
         measurement["status"] = "Bad"
     elif early_warning_flag:
         measurement["status"] = "Degraded"
