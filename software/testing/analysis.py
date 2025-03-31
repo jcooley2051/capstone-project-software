@@ -8,13 +8,13 @@ from threading import Thread
 
 # MQTT Configuration
 MQTT_BROKER = "localhost"
-MQTT_PORT = 1883
+MQTT_PORT = 1337
 OUTPUT_TOPIC = "analysis/results"
 INPUT_TOPIC = "reading/formatted"
 
 # Acceptable Ranges 
 acceptable_temp_range = (18, 30)     # Temperature in °C
-acceptable_humid_range = (30, 70)      # Humidity in %
+acceptable_humid_range = (25, 70)      # Humidity in %
 acceptable_light_range = (0, 30)       # Ambient light in lux
 acceptable_particle_range = (0, 100)   # Particle count
 
