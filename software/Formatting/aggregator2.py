@@ -88,10 +88,12 @@ def integrate(accel_data, dt=0.002):
 
 # Process acceleration data
 def process_acceleration(temp_buffer):
+    # Convert hex string to decimal
     buffer_bytes = parse_hex_string(temp_buffer)
     accel_data = decode_sensor_readings(buffer_bytes)
     filtered_accel = high_pass_filter(accel_data)
-    #averages = np.mean(filtered_accel, axis=0)
+    
+    # Find average acceleration in each direction
     accel_x_avg = np.max(filtered_accel[:, 0])  # Average of x-component
     accel_y_avg = np.max(filtered_accel[:, 1])  # Average of y-component
     accel_z_avg = np.max(filtered_accel[:, 2])  # Average of z-component
@@ -137,11 +139,17 @@ def listen_to_topic(topic, key):
                         if key == "PL_thread":
                             new_data = json.loads(line)
                             data["PL_data"] = {key: new_data[key] if key in new_data else data["PL_data"][key] for key in data["PL_data"]}
-                            data["PL_data"]["vibration"] = process_acceleration(data["PL_data"]["vibration"]) # Process acceleration
+                            if all(char == 'F' for char in data["PL_data"]["vibration"]): # Check for acceleration error
+                                data["PL_data"]["vibration"] = -1
+                            else:
+                                data["PL_data"]["vibration"] = process_acceleration(data["PL_data"]["vibration"]) # Process acceleration
                         elif key == "SC_thread":
                             new_data = json.loads(line)
                             data["SC_data"] = {key: new_data[key] if key in new_data else data["SC_data"][key] for key in data["SC_data"]}
-                            data["SC_data"]["vibration"] = process_acceleration(data["SC_data"]["vibration"]) # Process acceleration
+                            if all(char == 'F' for char in data["SC_data"]["vibration"]): # Check for acceleration error
+                                data["SC_data"]["vibration"] = -1
+                            else:
+                                data["SC_data"]["vibration"] = process_acceleration(data["SC_data"]["vibration"]) # Process acceleration
                         elif key == "SP_thread":
                             new_data = json.loads(line)
                             data["SP_data"] = {key: new_data[key] if key in new_data else data["SP_data"][key] for key in data["SP_data"]}
