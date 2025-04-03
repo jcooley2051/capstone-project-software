@@ -10,6 +10,8 @@ import re
 # MQTT configuration
 MQTT_BROKER = "localhost"
 MQTT_PORT = 1337
+MQTT_USERNAME = "hackerfab2025"
+MQTT_PASSWORD = "osu2025"
 
 # Local testing configuration
 #MQTT_BROKER = "test.mosquitto.org"
@@ -31,6 +33,8 @@ def publish_to_mqtt(message):
         "mosquitto_pub",
         "-h", MQTT_BROKER,
         "-p", str(MQTT_PORT),
+        "-u", MQTT_USERNAME,
+        "-P", MQTT_PASSWORD,
         "-t", "reading/formatted",
         "-m", json.dumps(message)  # Publish as a JSON string
     ]
@@ -121,6 +125,8 @@ def listen_to_topic(topic, key):
             "mosquitto_sub",
             "-h", MQTT_BROKER,
             "-p", str(MQTT_PORT),
+            "-u", MQTT_USERNAME,
+            "-P", MQTT_PASSWORD,
             "-t", topic
         ]
 
