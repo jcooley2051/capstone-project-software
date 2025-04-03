@@ -9,6 +9,8 @@ from threading import Thread
 # MQTT Configuration
 MQTT_BROKER = "localhost"
 MQTT_PORT = 1337
+MQTT_USERNAME = "hackerfab2025"
+MQTT_PASSWORD = "osu2025"
 OUTPUT_TOPIC = "analysis/results"
 INPUT_TOPIC = "reading/formatted"
 
@@ -120,6 +122,8 @@ def publish_to_mqtt(topic, message):
         "mosquitto_pub",
         "-h", MQTT_BROKER,
         "-p", str(MQTT_PORT),
+        "-u", MQTT_USERNAME,
+        "-P", MQTT_PASSWORD,
         "-t", topic,
         "-m", json.dumps(message)
     ]
@@ -330,7 +334,7 @@ def process_node_data(node_data, node_name, overall_time, publish=True):
     return published_measurement
 
 def listen_to_topic_combined(topic):
-    command = ["mosquitto_sub", "-h", MQTT_BROKER, "-p", str(MQTT_PORT), "-t", topic]
+    command = ["mosquitto_sub", "-h", MQTT_BROKER, "-p", str(MQTT_PORT), "-u", MQTT_USERNAME, "-P", MQTT_PASSWORD, "-t", topic]
     try:
         with subprocess.Popen(command, stdout=subprocess.PIPE, text=True) as proc:
             for line in proc.stdout:
