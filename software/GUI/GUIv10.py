@@ -181,7 +181,7 @@ ttk.Label(toolbar, textvariable=STRINGVARS['TB']['date']).grid(row=0, column=9, 
 def launch_child_script():
     # Replace "other_script.py" with the path to your script
     try:
-        subprocess.Popen(['python3', './GUI/plot2.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.Popen(['python3', '/home/admin/Documents/capstone-project-software/software/GUI/plot2.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print("Child script launched.")
     except Exception as e:
         print(f"Failed to launch script: {e}")
@@ -216,9 +216,9 @@ def make_station_frame(parent, title, sensor_dict, script_path, script_args=None
 
 
 # Create station blocks
-PL_frame = make_station_frame(stations, 'Photolithography', STRINGVARS['PL_data'], './GUI/node-plot.py', ['PL'])
-SC_frame = make_station_frame(stations, 'Spin Coating', STRINGVARS['SC_data'], './GUI/node-plot.py', ['SC'])
-SP_frame = make_station_frame(stations, 'Sputtering', STRINGVARS['SP_data'], './softwae/GUI/node-plot.py', ['SP'])
+PL_frame = make_station_frame(stations, 'Photolithography', STRINGVARS['PL_data'], '/home/admin/Documents/capstone-project-software/software/GUI/node-plot.py', ['PL'])
+SC_frame = make_station_frame(stations, 'Spin Coating', STRINGVARS['SC_data'], '/home/admin/Documents/capstone-project-software/software/GUI/node-plot.py', ['SC'])
+SP_frame = make_station_frame(stations, 'Sputtering', STRINGVARS['SP_data'], '/home/admin/Documents/capstone-project-software/software/GUI/node-plot.py', ['SP'])
 
 
 
