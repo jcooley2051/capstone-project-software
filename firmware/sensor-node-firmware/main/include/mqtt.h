@@ -8,6 +8,8 @@
 #define MQTT_TAG "MQTT:"
 
 #define MQTT_BROKER_URI "mqtt://:1883"
+#define MQTT_BROKER_USERNAME "hackerfab2025"
+#define MQTT_BROKER_PASSWORD "osu2025"
 
 // MQTT client handle
 extern esp_mqtt_client_handle_t mqtt_client;
