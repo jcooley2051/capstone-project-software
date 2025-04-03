@@ -52,30 +52,6 @@ STATIONS = {'PL_data': PL_SENSORS,
 # Function to update StringVars with packet data.
 def update_vars(root, packet, stringVars, stations):
     '''Update GUI variables with new sensor readings from packet'''
-    # Compute average temperature and humidity
-    temp_vals = []
-    humid_vals = []
-
-    for station, sensors in stations.items():
-        if 'temperature' in sensors and 'temperature' in packet[station]:
-            try:
-                temp_vals.append(float(packet[station]['temperature'][:5]))
-            except (ValueError, TypeError):
-                print(f"failed1: {packet[station]['temperature']}")
-                pass
-        if 'humidity' in sensors and 'humidity' in packet[station]:
-            try:
-                humid_vals.append(float(packet[station]['humidity'][:5]))
-            except (ValueError, TypeError):
-                pass
-                print("failed2")
-
-    avg_temp = sum(temp_vals) / len(temp_vals) if temp_vals else 'N/A'
-    avg_humid = sum(humid_vals) / len(humid_vals) if humid_vals else 'N/A'
-
-    stringVars['TB']['temperature'].set(f"{avg_temp:.1f}" if isinstance(avg_temp, float) else avg_temp)
-    stringVars['TB']['humidity'].set(f"{avg_humid:.1f}" if isinstance(avg_humid, float) else avg_humid)
-
     # Format time as HH:MM:SS
     try:
         time_str = packet['time']
@@ -135,14 +111,10 @@ Combine StringVars into dictionaries to simplify passing to update functions.
 '''
 
 # Toolbar StringVars
-TB_temperature = T.StringVar()
-TB_humidity = T.StringVar()
 TB_time = T.StringVar()
 TB_date = T.StringVar()
 
-toolbar_vars = {'temperature': TB_temperature,
-                'humidity': TB_humidity,
-                'time': TB_time,
+toolbar_vars = {'time': TB_time,
                 'date': TB_date}
 
 # Photolithography StringVars
@@ -200,12 +172,6 @@ stations = ttk.Frame(root, padding=10)
 ttk.Label(toolbar, text='Hackerfab', font=('Arial', 14, 'bold')).grid(row=0, column=0, sticky='w')
 ttk.Label(toolbar, text='OSU', font=('Arial', 14)).grid(row=0, column=1, sticky='w', padx=(10, 30))
 
-ttk.Label(toolbar, text='Temp:').grid(row=0, column=2, sticky='e')
-ttk.Label(toolbar, textvariable=STRINGVARS['TB']['temperature']).grid(row=0, column=3, sticky='w')
-
-ttk.Label(toolbar, text='Humidity:').grid(row=0, column=4, sticky='e')
-ttk.Label(toolbar, textvariable=STRINGVARS['TB']['humidity']).grid(row=0, column=5, sticky='w')
-
 ttk.Label(toolbar, text='Time:').grid(row=0, column=6, sticky='e')
 ttk.Label(toolbar, textvariable=STRINGVARS['TB']['time']).grid(row=0, column=7, sticky='w')
 
@@ -215,7 +181,7 @@ ttk.Label(toolbar, textvariable=STRINGVARS['TB']['date']).grid(row=0, column=9, 
 def launch_child_script():
     # Replace "other_script.py" with the path to your script
     try:
-        subprocess.Popen(['python3', '/home/admin/Documents/capstone-project-software/software/GUI/plot2.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.Popen(['python3', './GUI/plot2.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print("Child script launched.")
     except Exception as e:
         print(f"Failed to launch script: {e}")
@@ -250,9 +216,9 @@ def make_station_frame(parent, title, sensor_dict, script_path, script_args=None
 
 
 # Create station blocks
-PL_frame = make_station_frame(stations, 'Photolithography', STRINGVARS['PL_data'], '/home/admin/Documents/capstone-project-software/software/GUI/node-plot.py', ['PL'])
-SC_frame = make_station_frame(stations, 'Spin Coating', STRINGVARS['SC_data'], '/home/admin/Documents/capstone-project-software/software/GUI/node-plot.py', ['SC'])
-SP_frame = make_station_frame(stations, 'Sputtering', STRINGVARS['SP_data'], '/home/admin/Documents/capstone-project-software/software/GUI/node-plot.py', ['SP'])
+PL_frame = make_station_frame(stations, 'Photolithography', STRINGVARS['PL_data'], './GUI/node-plot.py', ['PL'])
+SC_frame = make_station_frame(stations, 'Spin Coating', STRINGVARS['SC_data'], './GUI/node-plot.py', ['SC'])
+SP_frame = make_station_frame(stations, 'Sputtering', STRINGVARS['SP_data'], './softwae/GUI/node-plot.py', ['SP'])
 
 
 

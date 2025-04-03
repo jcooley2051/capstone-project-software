@@ -12,7 +12,7 @@ def publish_file_to_channel(host, port, file, channel, delay):
                 for line in f:
                     # Publish each line as a separate message
                     subprocess.run(
-                        ['mosquitto_pub', '-h', host, '-p', str(port), '-t', channel, '-m', line.strip()],
+                        ['mosquitto_pub', '-h', host, '-p', str(port), '-u', 'hackerfab2025', '-P', 'osu2025', '-t', channel, '-m', line.strip()],
                         check=True
                     )
                     time.sleep(delay)
