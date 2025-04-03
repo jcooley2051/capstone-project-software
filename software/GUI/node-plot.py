@@ -739,7 +739,7 @@ def trim_old_data():
 
 def listen_to_mqtt():
     print("Starting MQTT listener...")
-    command = ["mosquitto_sub", "-h", MQTT_BROKER, "-p", str(MQTT_PORT), "-t", INPUT_TOPIC]
+    command = ["mosquitto_sub", "-h", MQTT_BROKER, "-p", str(MQTT_PORT), "-t", INPUT_TOPIC, '-u', 'hackerfab2025', '-P', 'osu2025']
     proc = subprocess.Popen(command, stdout=subprocess.PIPE, text=True)
 
     for line in proc.stdout:
