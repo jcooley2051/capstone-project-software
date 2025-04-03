@@ -14,6 +14,8 @@ root.title('Hackerfab Monitoring System')
 MQTT_BROKER = 'localhost'
 MQTT_PORT = '1337'
 INPUT_TOPIC = 'analysis/results'
+MQTT_USERNAME = 'hackerfab2025'
+MQTT_PASSWORD = 'osu2025'
 
 # Sensor configuration
 """
@@ -74,6 +76,8 @@ def listen_to_topic(root, topic, stringVars, stations):
         'mosquitto_sub',
         '-h', MQTT_BROKER,
         '-p', MQTT_PORT,
+        '-u', MQTT_USERNAME,
+        '-P', MQTT_PASSWORD,
         '-t', topic
     ]
     
