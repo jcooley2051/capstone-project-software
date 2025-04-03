@@ -7,7 +7,7 @@ import sys
 scripts = {
     "aggregator": "python3 /home/admin/Documents/capstone-project-software/software/Formatting/aggregator2.py",
     "analyzer":   "python3 /home/admin/Documents/capstone-project-software/software/testing/analysis.py",
-    "gui":        "python3 /home/admin/Documents/capstone-project-software/software/GUI/GUIv9.py"
+    "gui":        "python3 /home/admin/Documents/capstone-project-software/software/GUI/GUIv10.py"
 }
 
 # Dictionary to hold the running process objects.
