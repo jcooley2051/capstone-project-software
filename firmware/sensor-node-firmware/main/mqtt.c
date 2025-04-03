@@ -40,6 +40,8 @@ void init_mqtt(void)
 
     const esp_mqtt_client_config_t mqtt_cfg = {
         .broker.address.uri = MQTT_BROKER_URI,  // Set your Mosquitto broker's IP address here
+        .credentials.username = MQTT_BROKER_USERNAME,
+        .credentials.authentication.password = MQTT_BROKER_PASSWORD,
     };
    
     mqtt_client = esp_mqtt_client_init(&mqtt_cfg);
