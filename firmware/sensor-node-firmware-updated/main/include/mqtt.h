@@ -9,6 +9,8 @@
 #define MQTT_TAG "MQTT:"
 
 #define MQTT_BROKER_URI "mqtt://10.42.0.1:1337"
+#define MQTT_BROKER_USERNAME "hackerfab2025"
+#define MQTT_BROKER_PASSWORD "osu2025"
 
 #if defined(PHOTOLITHOGRAPHY) && defined(SPUTTERING) && defined(SPIN_COATING)
     #define MQTT_TOPIC "topic/test"
