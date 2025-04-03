@@ -12,8 +12,8 @@ static bool veml7700_config_error = false;
 void configure_veml7700(void)
 {
     esp_err_t ret = ESP_OK;
-    // Little Endian, 1x gain, 400ms integration time
-    uint8_t write_buffer[3] = {VEML_CONFIG_REGISTER, 0x80, 0x00};
+    // Little Endian, 2x gain, 800ms integration time
+    uint8_t write_buffer[3] = {VEML_CONFIG_REGISTER, 0xC0, 0x08};
 
     // Take ownership of I2C bus
     if (xSemaphoreTake(i2c_mutex, portMAX_DELAY) != pdTRUE)
