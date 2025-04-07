@@ -163,4 +163,18 @@ mqtt_thread = threading.Thread(target=listen_to_mqtt, daemon=True)
 mqtt_thread.start()
 
 ani = animation.FuncAnimation(fig, update, interval=1000)
+
+# Add fullscreen toggle
+mng = plt.get_current_fig_manager()
+try:
+    mng.full_screen_toggle()
+except AttributeError:
+    try:
+        mng.window.state('zoomed')
+    except:
+        try:
+            mng.window.showMaximized()
+        except:
+            pass
+
 plt.show()

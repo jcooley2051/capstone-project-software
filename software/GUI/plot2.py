@@ -195,14 +195,14 @@ for idx, metric in enumerate(METRICS):
     metric_buttons[metric] = btn
 
 # Bottom row (controls)
-control_spacing = 0.13
+control_spacing = 0.14
 control_start_x = 0.25
 btn_axes = {
-    "close": plt.axes([control_start_x + control_spacing * 0, 0.01, 0.1, button_height]),
-    "autoscale_toggle": plt.axes([control_start_x + control_spacing * 1, 0.01, 0.1, button_height]),
-    "toggle_pl": plt.axes([control_start_x + control_spacing * 2, 0.01, 0.1, button_height]),
-    "toggle_sc": plt.axes([control_start_x + control_spacing * 3, 0.01, 0.1, button_height]),
-    "toggle_sp": plt.axes([control_start_x + control_spacing * 4, 0.01, 0.1, button_height]),
+    "close": plt.axes([control_start_x + control_spacing * 0, 0.01, 0.13, button_height]),
+    "autoscale_toggle": plt.axes([control_start_x + control_spacing * 1, 0.01, 0.13, button_height]),
+    "toggle_pl": plt.axes([control_start_x + control_spacing * 2, 0.01, 0.13, button_height]),
+    "toggle_sc": plt.axes([control_start_x + control_spacing * 3, 0.01, 0.13, button_height]),
+    "toggle_sp": plt.axes([control_start_x + control_spacing * 4, 0.01, 0.13, button_height]),
 }
 
 btn_close = Button(btn_axes["close"], "Close")
@@ -219,4 +219,17 @@ btn_sp.on_clicked(partial(toggle_node, "SP"))
 
 
 ani = animation.FuncAnimation(fig, update_plot, interval=1000, cache_frame_data=False)
+# Add fullscreen toggle
+mng = plt.get_current_fig_manager()
+try:
+    mng.full_screen_toggle()
+except AttributeError:
+    try:
+        mng.window.state('zoomed')
+    except:
+        try:
+            mng.window.showMaximized()
+        except:
+            pass
+
 plt.show(block=True)

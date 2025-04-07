@@ -2,12 +2,13 @@ import subprocess
 import time
 import signal
 import sys
+import os
 
 # Dictionary of script names and their corresponding commands.
 scripts = {
     "aggregator": "python3 /home/admin/Documents/capstone-project-software/software/Formatting/aggregator2.py",
     "analyzer":   "python3 /home/admin/Documents/capstone-project-software/software/testing/analysis.py",
-    "gui":        "python3 /home/admin/Documents/capstone-project-software/software/GUI/GUIv11.py"
+    "gui": f"python3 /home/admin/Documents/capstone-project-software/software/GUI/GUIv11.py {os.getpid()}"
 }
 
 # Dictionary to hold the running process objects.

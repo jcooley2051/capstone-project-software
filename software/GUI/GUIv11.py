@@ -1,3 +1,6 @@
+import os
+import sys
+import signal
 import tkinter as T
 from tkinter import ttk
 import json
@@ -8,7 +11,10 @@ import threading
 
 # create "root" widget
 root = T.Tk()
+#root.attributes("-fullscreen", True)
 root.title('Hackerfab Monitoring System')
+
+parent_pid = int(sys.argv[1]) if len(sys.argv) > 1 else None
 
 # MQTT configuration
 MQTT_BROKER = 'localhost'
@@ -218,6 +224,18 @@ listener_thread.start()
 
 # Save Data Button
 save_button = ttk.Button(root, text="Save Data", command=lambda: subprocess.Popen(['python3', '/home/admin/Documents/capstone-project-software/software/GUI/save_data.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE))
-save_button.grid(row=2, column=0, pady=(10, 20))
+save_button.grid(row=2, column=0, pady=(10, 5))
+
+def kill_parent():
+    if parent_pid:
+        try:
+            os.kill(parent_pid, signal.SIGINT)
+            root.destroy()
+        except Exception as e:
+            print(f"Failed to kill parent process: {e}")
+
+exit_button = ttk.Button(root, text="Exit All", command=kill_parent)
+exit_button.grid(row=3, column=0, pady=(0, 20))
+
 
 root.mainloop()
