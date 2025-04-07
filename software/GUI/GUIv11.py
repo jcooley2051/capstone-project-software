@@ -18,13 +18,6 @@ MQTT_USERNAME = 'hackerfab2025'
 MQTT_PASSWORD = 'osu2025'
 
 # Sensor configuration
-"""
-Create Python Tuples for each station containing that station's sensor types
-~~~~~~TEMPLATE~~~~~~
-St_SENSORS = ('sensor_1',
-              'sensor_2',
-              'sensor_3')
-"""
 PL_SENSORS = ('temperature',
               'humidity',
               'ambient_light',
@@ -39,43 +32,31 @@ SP_SENSORS = ('temperature',
               'humidity',
               'ambient_light')
 
-"""
-Create Python Dictionary containing all stations
-~~~~~~TEMPLATE~~~~~~
-STATIONS = {'St': St_sensors}
-"""
-# Note: Keys match those in the MQTT message: "PL_data", "SC_data", "SP_data"
 STATIONS = {'PL_data': PL_SENSORS,
             'SC_data': SC_SENSORS,
             'SP_data': SP_SENSORS}
 
-# Function to update StringVars with packet data.
 def update_vars(root, packet, stringVars, stations):
-    '''Update GUI variables with new sensor readings from packet'''
-    # Format time as HH:MM:SS
     try:
         time_str = packet['time']
         time_formatted = time_str.split()[1] if ' ' in time_str else time_str
-        stringVars['TB']['time'].set(time_formatted[11:])  # Truncate to HH:MM:SS
+        stringVars['TB']['time'].set(time_formatted[11:])
     except Exception:
         stringVars['TB']['time'].set('Invalid')
 
     stringVars['TB']['date'].set(D.today())
 
     for station, sensors in stations.items():
-        # Update each sensor value.
         for sensor in sensors:
             if sensor in packet[station]:
                 stringVars[station][sensor].set(packet[station][sensor])
-        # Update the status if it is provided in the packet.
         if 'status' in packet[station]:
             stringVars[station]['status'].set(packet[station]['status'])
-        
+
     root.update_idletasks()
 
 def listen_to_topic(root, topic, stringVars, stations):
-    '''Listen to the MQTT topic and update the GUI accordingly'''
-    print(f'Listening to topic: {topic}')  # Debug message
+    print(f'Listening to topic: {topic}')
     command = [
         'mosquitto_sub',
         '-h', MQTT_BROKER,
@@ -84,7 +65,7 @@ def listen_to_topic(root, topic, stringVars, stations):
         '-P', MQTT_PASSWORD,
         '-t', topic
     ]
-    
+
     trying_to_connect = True
     while trying_to_connect:
         try:
@@ -94,10 +75,9 @@ def listen_to_topic(root, topic, stringVars, stations):
                     try:
                         packet = json.loads(line)
                         update_vars(root, packet, stringVars, stations)
-                        # Optionally, reset data in packet if needed.
                         for station, sensors in stations.items():
                             for sensor in sensors:
-                                packet[station][sensor] = None 
+                                packet[station][sensor] = None
                         packet['time'] = None
                     except ValueError:
                         print(f'Invalid data received on topic "{topic}": {line}')
@@ -105,19 +85,12 @@ def listen_to_topic(root, topic, stringVars, stations):
         except Exception as e:
             print(f'Error in listening to topic {topic}: {e}')
 
-'''
-Create tkinter StringVars to store individual values to be displayed.
-Combine StringVars into dictionaries to simplify passing to update functions.
-'''
-
-# Toolbar StringVars
 TB_time = T.StringVar()
 TB_date = T.StringVar()
 
 toolbar_vars = {'time': TB_time,
                 'date': TB_date}
 
-# Photolithography StringVars
 PL_temperature = T.StringVar()
 PL_humidity = T.StringVar()
 PL_ambient_light = T.StringVar()
@@ -130,7 +103,6 @@ photolithography_vars = {'temperature': PL_temperature,
                          'vibration': PL_vibration,
                          'status': PL_status}
 
-# Spin Coating StringVars
 SC_temperature = T.StringVar()
 SC_humidity = T.StringVar()
 SC_particle_count = T.StringVar()
@@ -143,7 +115,6 @@ spin_coating_vars = {'temperature': SC_temperature,
                      'vibration': SC_vibration,
                      'status': SC_status}
 
-# Sputtering StringVars
 SP_temperature = T.StringVar()
 SP_humidity = T.StringVar()
 SP_ambient_light = T.StringVar()
@@ -154,17 +125,11 @@ sputtering_vars = {'temperature': SP_temperature,
                    'ambient_light': SP_ambient_light,
                    'status': SP_status}
 
-"""
-Create Python Dictionary containing station StringVars.
-Keys must match the MQTT message keys: "PL_data", "SC_data", "SP_data".
-"""
 STRINGVARS = {'TB': toolbar_vars,
               'PL_data': photolithography_vars,
               'SC_data': spin_coating_vars,
               'SP_data': sputtering_vars}
 
-''' Create tkinter frame widgets to organize content widgets '''
-# Organize layout using LabelFrames for clarity
 toolbar = ttk.Frame(root, padding=10)
 stations = ttk.Frame(root, padding=10)
 
@@ -179,7 +144,6 @@ ttk.Label(toolbar, text='Date:').grid(row=0, column=8, sticky='e')
 ttk.Label(toolbar, textvariable=STRINGVARS['TB']['date']).grid(row=0, column=9, sticky='w')
 
 def launch_child_script():
-    # Replace "other_script.py" with the path to your script
     try:
         subprocess.Popen(['python3', '/home/admin/Documents/capstone-project-software/software/GUI/plot2.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print("Child script launched.")
@@ -200,43 +164,37 @@ def make_station_frame(parent, title, sensor_dict, script_path, script_args=None
             print(f"Failed to launch {script_path}: {e}")
 
     frame = ttk.LabelFrame(parent, text=title, padding=10)
-
     row = 0
     for sensor, var in sensor_dict.items():
         if sensor != 'status':
             label1 = ttk.Label(frame, text=f'{sensor.replace("_", " ").title()}:')
             label2 = ttk.Label(frame, textvariable=var)
-            label1.grid(row=row, column=0, sticky='e', padx=5, pady=2)
-            label2.grid(row=row, column=1, sticky='w', padx=5, pady=2)
-            # Bind click events to the labels too
+            style_kwargs = {}
+            if sensor == 'vibration':
+                style_kwargs = {'font': ('Arial', 12, 'bold')}
+                label1.grid(row=row, column=0, sticky='e', padx=5, pady=10)
+                label2.grid(row=row, column=1, sticky='w', padx=5, pady=10)
+            else:
+                label1.grid(row=row, column=0, sticky='e', padx=5, pady=2)
+                label2.grid(row=row, column=1, sticky='w', padx=5, pady=2)
+            label1.configure(**style_kwargs)
+            label2.configure(**style_kwargs)
             label1.bind("<Button-1>", on_click)
             label2.bind("<Button-1>", on_click)
             row += 1
-
     status_label = ttk.Label(frame, text='Status:', font=('Arial', 10, 'bold'))
     status_value = ttk.Label(frame, textvariable=sensor_dict['status'])
     status_label.grid(row=row, column=0, sticky='e', padx=5, pady=(10, 2))
     status_value.grid(row=row, column=1, sticky='w', padx=5, pady=(10, 2))
-
-    # Bind those too
     status_label.bind("<Button-1>", on_click)
     status_value.bind("<Button-1>", on_click)
-
-    # Also bind the outer frame (background clicks)
     frame.bind("<Button-1>", on_click)
-
     return frame
 
-
-
-# Create station blocks
 PL_frame = make_station_frame(stations, 'Photolithography', STRINGVARS['PL_data'], '/home/admin/Documents/capstone-project-software/software/GUI/node-plot.py', ['PL'])
 SC_frame = make_station_frame(stations, 'Spin Coating', STRINGVARS['SC_data'], '/home/admin/Documents/capstone-project-software/software/GUI/node-plot.py', ['SC'])
 SP_frame = make_station_frame(stations, 'Sputtering', STRINGVARS['SP_data'], '/home/admin/Documents/capstone-project-software/software/GUI/node-plot.py', ['SP'])
 
-
-
-# Grid placement
 toolbar.grid(row=0, column=0, sticky='ew')
 stations.grid(row=1, column=0, sticky='nsew')
 
@@ -244,7 +202,6 @@ PL_frame.grid(row=0, column=0, padx=10, pady=10, sticky='nsew')
 SC_frame.grid(row=0, column=1, padx=10, pady=10, sticky='nsew')
 SP_frame.grid(row=0, column=2, padx=10, pady=10, sticky='nsew')
 
-# Make columns expand evenly
 stations.columnconfigure(0, weight=1)
 stations.columnconfigure(1, weight=1)
 stations.columnconfigure(2, weight=1)
@@ -252,15 +209,15 @@ stations.columnconfigure(2, weight=1)
 root.columnconfigure(0, weight=1)
 root.rowconfigure(1, weight=1)
 
-# Set initial status values
 STRINGVARS['PL_data']['status'].set('STATUS')
 STRINGVARS['SC_data']['status'].set('STATUS')
 STRINGVARS['SP_data']['status'].set('STATUS')
 
-# Start the MQTT listener in a separate thread.
 listener_thread = threading.Thread(target=listen_to_topic, args=(root, INPUT_TOPIC, STRINGVARS, STATIONS), daemon=True)
 listener_thread.start()
 
-# Start the Tkinter main event loop
+# Save Data Button
+save_button = ttk.Button(root, text="Save Data", command=lambda: subprocess.Popen(['python3', '/home/admin/Documents/capstone-project-software/software/GUI/save_data.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE))
+save_button.grid(row=2, column=0, pady=(10, 20))
 
 root.mainloop()
