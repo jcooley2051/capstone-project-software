@@ -278,7 +278,7 @@ def analyze_and_process_node(measurement, publish=True):
         "temperature": " °C",
         "humidity": " %",
         "ambient_light": " lux",
-        "particle_count": " particles",
+        "particle_count": " μg/m\u00b3",
         "vibration": " g"
     }
     for sensor, unit in sensor_units.items():
@@ -317,7 +317,7 @@ def process_node_data(node_data, node_name, overall_time, publish=True):
         "temperature": " °C",
         "humidity": " %",
         "ambient_light": " lux",
-        "particle_count": " particles",
+        "particle_count": " μg/m\u00b3",
         "vibration": " g"
     }
     for sensor, unit in sensor_units.items():
