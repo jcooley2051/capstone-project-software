@@ -41,7 +41,7 @@ CSV_HEADERS = {
 # --- State ---
 metric_data = {metric: {node: deque() for node in NODES} for metric in METRICS}
 show_node = {node: True for node in NODES}
-selected_metric = "vibration"
+selected_metric = "temperature"
 paused = False
 autoscale_y = False
 vibration_lock = threading.Lock()
@@ -177,13 +177,14 @@ mqtt_thread = threading.Thread(target=listen_for_mqtt, daemon=True)
 mqtt_thread.start()
 
 fig, ax = plt.subplots()
+fig.canvas.manager.set_window_title('Node Plots')
 plt.subplots_adjust(bottom=0.2, left=0.25)
 
 # --- Buttons ---
 button_height = 0.08
 button_width = 0.15
 spacing = 0.1
-start_y = 0.85
+start_y = 0.75
 
 # Side row (metric selectors)
 metric_buttons = {}
@@ -221,15 +222,8 @@ btn_sp.on_clicked(partial(toggle_node, "SP"))
 ani = animation.FuncAnimation(fig, update_plot, interval=1000, cache_frame_data=False)
 # Add fullscreen toggle
 mng = plt.get_current_fig_manager()
-try:
-    mng.full_screen_toggle()
-except AttributeError:
-    try:
-        mng.window.state('zoomed')
-    except:
-        try:
-            mng.window.showMaximized()
-        except:
-            pass
+screen_width = mng.window.winfo_screenwidth()
+screen_height = mng.window.winfo_screenheight() - 50
+mng.window.geometry(f"{screen_width}x{screen_height}+0+0")
 
 plt.show(block=True)
