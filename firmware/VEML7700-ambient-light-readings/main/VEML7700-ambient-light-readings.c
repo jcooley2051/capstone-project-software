@@ -13,7 +13,7 @@
 #define I2C_PORT_AUTO -1
 #define SENSOR_ADDRESS 0x10
 
-#define RESOLUTION  0.0168f
+#define RESOLUTION  0.0042f
 
 // I2C handles
 i2c_master_bus_handle_t bus_handle;
@@ -45,8 +45,8 @@ void configure_veml7700(void)
     uint8_t write_buffer[3];
     write_buffer[0] = 0x00;
     // Little Endian
-    write_buffer[2] = 0x00;
-    write_buffer[1] = 0x80;
+    write_buffer[2] = 0x08;
+    write_buffer[1] = 0xC0;
     ESP_ERROR_CHECK(i2c_master_transmit(dev_handle, write_buffer, 3, portMAX_DELAY));
 }
 
