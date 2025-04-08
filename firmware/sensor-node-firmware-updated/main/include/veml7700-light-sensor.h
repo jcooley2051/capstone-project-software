@@ -9,7 +9,7 @@
 #define VEML_WHITE_READING_REGISTER 0x05
 
 // Used in conversion for sensor reading to LUX (see VEML7700 application notes)
-#define RESOLUTION 0.0168f
+#define RESOLUTION 0.0042f
 // Dummy value sent when there is an issue with reading the sensor
 #define DUMMY_LIGHT_READING (-1000)
 // Structure to hold the sensor readings for both the absolute and white light sensor
