@@ -149,8 +149,9 @@ load_initial_data()
 cols = 2
 rows = math.ceil(len(metrics) / cols)
 fig, axes = plt.subplots(rows, cols, figsize=(6, 2.5 * rows))
+fig.canvas.manager.set_window_title('Reading Plots')
 axes = axes.flatten()[:len(metrics)]
-plt.subplots_adjust(bottom=0.15, hspace=0.6, wspace=0.3)
+plt.subplots_adjust(left=0.2, bottom=0.2, hspace=0.6, wspace=0.3)
 
 btn_ax1 = plt.axes([0.3, 0.02, 0.2, 0.06])
 btn_ax2 = plt.axes([0.55, 0.02, 0.2, 0.06])
@@ -163,4 +164,11 @@ mqtt_thread = threading.Thread(target=listen_to_mqtt, daemon=True)
 mqtt_thread.start()
 
 ani = animation.FuncAnimation(fig, update, interval=1000)
+
+# Add fullscreen toggle
+mng = plt.get_current_fig_manager()
+screen_width = mng.window.winfo_screenwidth()
+screen_height = mng.window.winfo_screenheight() - 50
+mng.window.geometry(f"{screen_width}x{screen_height}+0+0")
+
 plt.show()

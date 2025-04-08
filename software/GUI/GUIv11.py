@@ -1,3 +1,6 @@
+import os
+import sys
+import signal
 import tkinter as T
 from tkinter import ttk
 import json
@@ -8,7 +11,13 @@ import threading
 
 # create "root" widget
 root = T.Tk()
+#root.attributes("-fullscreen", True)
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight() - 50
+root.geometry(f"{screen_width}x{screen_height}+0+0")
 root.title('Hackerfab Monitoring System')
+
+parent_pid = int(sys.argv[1]) if len(sys.argv) > 1 else None
 
 # MQTT configuration
 MQTT_BROKER = 'localhost'
@@ -137,10 +146,10 @@ stations = ttk.Frame(root, padding=10)
 ttk.Label(toolbar, text='Hackerfab', font=('Arial', 14, 'bold')).grid(row=0, column=0, sticky='w')
 ttk.Label(toolbar, text='OSU', font=('Arial', 14)).grid(row=0, column=1, sticky='w', padx=(10, 30))
 
-ttk.Label(toolbar, text='Time:').grid(row=0, column=6, sticky='e')
-ttk.Label(toolbar, textvariable=STRINGVARS['TB']['time']).grid(row=0, column=7, sticky='w')
+ttk.Label(toolbar, text='Time:').grid(row=0, column=6, sticky='e', padx=(10, 0))
+ttk.Label(toolbar, textvariable=STRINGVARS['TB']['time']).grid(row=0, column=7, sticky='w', )
 
-ttk.Label(toolbar, text='Date:').grid(row=0, column=8, sticky='e')
+ttk.Label(toolbar, text='Date:').grid(row=0, column=8, sticky='e', padx=(20, 0))
 ttk.Label(toolbar, textvariable=STRINGVARS['TB']['date']).grid(row=0, column=9, sticky='w')
 
 def launch_child_script():
@@ -150,7 +159,7 @@ def launch_child_script():
     except Exception as e:
         print(f"Failed to launch script: {e}")
 
-ttk.Button(toolbar, text='Reading Graphs', command=launch_child_script).grid(row=0, column=10, padx=(20, 0))
+ttk.Button(toolbar, text='Reading Graphs', command=launch_child_script).grid(row=0, column=14, padx=(40, 0))
 
 def make_station_frame(parent, title, sensor_dict, script_path, script_args=None):
     def on_click(event):
@@ -170,13 +179,8 @@ def make_station_frame(parent, title, sensor_dict, script_path, script_args=None
             label1 = ttk.Label(frame, text=f'{sensor.replace("_", " ").title()}:')
             label2 = ttk.Label(frame, textvariable=var)
             style_kwargs = {}
-            if sensor == 'vibration':
-                style_kwargs = {'font': ('Arial', 12, 'bold')}
-                label1.grid(row=row, column=0, sticky='e', padx=5, pady=10)
-                label2.grid(row=row, column=1, sticky='w', padx=5, pady=10)
-            else:
-                label1.grid(row=row, column=0, sticky='e', padx=5, pady=2)
-                label2.grid(row=row, column=1, sticky='w', padx=5, pady=2)
+            label1.grid(row=row, column=0, sticky='e', padx=5, pady=2)
+            label2.grid(row=row, column=1, sticky='w', padx=5, pady=2)
             label1.configure(**style_kwargs)
             label2.configure(**style_kwargs)
             label1.bind("<Button-1>", on_click)
@@ -218,6 +222,18 @@ listener_thread.start()
 
 # Save Data Button
 save_button = ttk.Button(root, text="Save Data", command=lambda: subprocess.Popen(['python3', '/home/admin/Documents/capstone-project-software/software/GUI/save_data.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE))
-save_button.grid(row=2, column=0, pady=(10, 20))
+save_button.grid(row=2, column=0, pady=(10, 30))
+
+def kill_parent():
+    if parent_pid:
+        try:
+            os.kill(parent_pid, signal.SIGINT)
+            root.destroy()
+        except Exception as e:
+            print(f"Failed to kill parent process: {e}")
+
+exit_button = ttk.Button(root, text="Exit All", command=kill_parent)
+exit_button.grid(row=3, column=0, pady=(10, 50))
+
 
 root.mainloop()

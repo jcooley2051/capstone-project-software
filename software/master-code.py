@@ -2,12 +2,13 @@ import subprocess
 import time
 import signal
 import sys
+import os
 
 # Dictionary of script names and their corresponding commands.
 scripts = {
     "aggregator": "python3 /home/admin/Documents/capstone-project-software/software/Formatting/aggregator2.py",
     "analyzer":   "python3 /home/admin/Documents/capstone-project-software/software/testing/analysis.py",
-    "gui":        "python3 /home/admin/Documents/capstone-project-software/software/GUI/GUIv11.py"
+    "gui": f"python3 /home/admin/Documents/capstone-project-software/software/GUI/GUIv11.py {os.getpid()}"
 }
 
 # Dictionary to hold the running process objects.
@@ -16,22 +17,34 @@ processes = {}
 def start_script(name, command):
     """Starts the script and stores the process in the processes dictionary."""
     print(f"Starting {name}...")
-    proc = subprocess.Popen(command, shell=True)
+    proc = subprocess.Popen(
+        command,
+        shell=True,
+        preexec_fn=os.setsid  # Start in a new session, making a new process group
+    )
     processes[name] = proc
 
 def cleanup():
-    """Terminate all child processes."""
+    """Terminate all child process groups and their subprocesses."""
     print("Cleaning up child processes...")
     for name, proc in processes.items():
-        print(f"Terminating {name}...")
-        proc.terminate()  # Gracefully ask the process to terminate.
-    # Give processes a moment to exit gracefully.
-    time.sleep(2)
-    # Force kill any processes still running.
+        try:
+            print(f"Terminating {name}...")
+            os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # Send SIGTERM to the whole group
+        except Exception as e:
+            print(f"Error terminating {name}: {e}")
+
+    time.sleep(2)  # Give them time to shut down
+
+    # Force kill any that didn’t shut down
     for name, proc in processes.items():
         if proc.poll() is None:
-            print(f"Forcing {name} to kill...")
-            proc.kill()
+            try:
+                print(f"Forcing {name} to kill...")
+                os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+            except Exception as e:
+                print(f"Error force killing {name}: {e}")
+
     print("Cleanup complete.")
 
 def signal_handler(sig, frame):
