@@ -42,7 +42,7 @@ void configure_adxl(void)
     }
 
     write_buffer[0] = ADXL_RANGE_REGISTER;
-    write_buffer[1] = 0x01; // 2g
+    write_buffer[1] = 0x03; // 8g
     ret = i2c_transmit_sensor(adxl_handle, write_buffer, sizeof(write_buffer));
     if (ret != ESP_OK)
     {

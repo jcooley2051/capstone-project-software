@@ -69,9 +69,9 @@ def decode_sensor_readings(read_buffer):
         y_data = convert_to_signed_20bit(y_data)
         z_data = convert_to_signed_20bit(z_data)
         
-        accel_x = (x_data / 256000) * 9.81
-        accel_y = (y_data / 256000) * 9.81
-        accel_z = (z_data / 256000) * 9.81
+        accel_x = (x_data / 64000)
+        accel_y = (y_data / 64000)
+        accel_z = (z_data / 64000)
         
         accel_data.append([accel_x, accel_y, accel_z])
     
