@@ -61,6 +61,7 @@ void init_adc(void)
         bad_setup = true;
     }
 
+#if ADC_CALI_SCHEME_CURVE_FITTING_SUPPORTED
     // Init ADC1 Calibration
     adc_cali_curve_fitting_config_t cali_config = {
         .unit_id = ADC_UNIT_1,
@@ -78,7 +79,25 @@ void init_adc(void)
             vTaskDelay(ADC_RETRY_DELAY_MS / portTICK_PERIOD_MS);
         }
     } while(ret != ESP_OK && retry_count < ADC_RETRY_COUNT);
+#endif
+#if ADC_CALI_SCHEME_LINE_FITTING_SUPPORTED
+    adc_cali_line_fitting_config_t cali_config = {
+        .unit_id = ADC_UNIT_1,
+        .atten = ADC_ATTEN_DB_12,
+        .bitwidth = ADC_BITWIDTH_DEFAULT,
+    };
 
+    retry_count = 0;
+    do
+    {
+        ret = adc_cali_create_scheme_line_fitting(&cali_config, &cali_handle);
+        retry_count++;
+        if (ret != ESP_OK)
+        {
+            vTaskDelay(ADC_RETRY_DELAY_MS / portTICK_PERIOD_MS);
+        }
+    } while(ret != ESP_OK && retry_count < ADC_RETRY_COUNT);
+#endif
     if (ret != ESP_OK)
     {
         ESP_LOGE("configure_adc", "Error initializing ADC");

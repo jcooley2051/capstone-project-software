@@ -43,16 +43,6 @@ void configure_bme280(void)
         bme280_config_error = true;
     }
 
-    // Configure Temperature sampling and mode
-    write_buffer[0] = BME_CTRL_MEAS_REGISTER;
-    write_buffer[1] = 0xA3; // 16x oversampling, normal mode (0b10100011)
-    ret = i2c_transmit_sensor(bme_handle, write_buffer, sizeof(write_buffer));
-    if (ret != ESP_OK)
-    {
-        ESP_LOGE("configure_bme280", "Failed configuring temperature oversampling and mode for BME280");
-        bme280_config_error = true;
-    }
-
     // Configure Humidity Oversampling
     write_buffer[0] = BME_CTRL_HUM_REGISTER;
     write_buffer[1] = 0x05; // 16x oversampling (0b00000101)
@@ -60,6 +50,16 @@ void configure_bme280(void)
     if (ret != ESP_OK)
     {
         ESP_LOGE("configure_bme280", "Failed configureing humidity oversampling for BME280");
+        bme280_config_error = true;
+    }
+    
+    // Configure Temperature sampling and mode
+    write_buffer[0] = BME_CTRL_MEAS_REGISTER;
+    write_buffer[1] = 0xA3; // 16x oversampling, normal mode (0b10100011)
+    ret = i2c_transmit_sensor(bme_handle, write_buffer, sizeof(write_buffer));
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE("configure_bme280", "Failed configuring temperature oversampling and mode for BME280");
         bme280_config_error = true;
     }
 
