@@ -302,7 +302,7 @@ for (int i = 0; i < total_readings; i++) {
         max_magnitude = magnitude;
     }
 
-    if (i % 25 != 0)
+    if (i % 25 == 0)
     {
         printf("Reading %3d: X=%.2f, Y=%.2f, Z=%.2f, |A|=%.2f\n", i + 1, xf, yf, zf, magnitude);
     }  // Only every 25th reading
