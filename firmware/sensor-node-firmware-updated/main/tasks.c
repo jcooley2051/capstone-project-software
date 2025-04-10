@@ -12,7 +12,7 @@
 #include "mqtt_client.h"
 #include "freertos/message_buffer.h"
 #include "esp_log.h"
-
+#include <math.h>
 
 #define REGULAR_MESSAGE_BUFFER_SIZE 256
 #define LARGE_MESSAGE_BUFFER_SIZE 9500
