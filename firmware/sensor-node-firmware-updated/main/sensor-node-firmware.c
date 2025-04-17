@@ -85,9 +85,8 @@ void app_main(void)
 #endif
 #ifdef TEST_MODE
     xTaskCreate(print_readings, "Readings Printing Task", 65536, NULL, 5, NULL);
-    xTaskCreate(print_battery_readings, "Battery Readings Task", 2048, NULL, 0, NULL);
 #endif
-
+    xTaskCreate(print_battery_readings, "Battery Readings Task", 2048, NULL, 0, NULL);
     // Give Sensors time to take initial readings
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 
