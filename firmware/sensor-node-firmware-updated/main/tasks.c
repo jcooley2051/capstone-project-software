@@ -103,18 +103,17 @@ void vibration_readings(void *arg)
     }
 }
 
-#ifdef TEST_MODE
 void print_battery_readings(void * arg)
 {
     int voltage_mV = 0;
     while(1)
     {
         get_battery_voltage(&voltage_mV);
-        printf("Voltage: %f", ((float)voltage_mV)/1000);
+        printf("Voltage: %f", (3.25) * ((float)voltage_mV)/1000);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
-#endif
+
 #ifdef PROD_MODE
 void publish_battery_readings(void * arg)
 {
