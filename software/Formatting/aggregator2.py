@@ -116,6 +116,15 @@ def check_null(data):
                 return True
     return False
 
+# Reset all dictionary values to null
+def set_all_to_null(data):
+    for key, value in data.items():
+        if isinstance(value, dict):
+            for subkey in value:
+                value[subkey] = None
+        else:
+            data[key] = None
+
 # Continuously process readings from ESP32 and send to data analysis
 def listen_to_topic(topic, key):
     while True:
@@ -168,10 +177,7 @@ def listen_to_topic(topic, key):
                             publish_to_mqtt(data)
                                 
                             # Reset data for next reading
-                            data["PL_data"] = {"temperature": None, "humidity": None, "ambient_light": None, "vibration": None}
-                            data["SC_data"] = {"temperature": None, "humidity": None, "particle_count": None, "vibration": None}
-                            data["SP_data"] = {"temperature": None, "humidity": None, "ambient_light": None}
-                            data["time"] = None
+                            set_all_to_null(data)
 
         except Exception as e:
             print(f"Error in listening to topic {topic}: {e}")
