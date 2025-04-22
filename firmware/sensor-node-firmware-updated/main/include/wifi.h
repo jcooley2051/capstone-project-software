@@ -6,7 +6,7 @@
 
 // Wifi credentials
 #define WIFI_SSID "Hackerfab Monitor"
-#define WIFI_PASSWORD ""
+#define WIFI_PASSWORD "#15HFaAcBk25?"
 
 #define WIFI_EVENT_TAG "WiFi Station:"
 

@@ -18,15 +18,15 @@
 #else
 #ifdef PHOTOLITHOGRAPHY 
     #define MQTT_TOPIC "topic/PL"
-    #define BATTERY_TOPIC "topic/PL_battery"
+    #define BATTERY_TOPIC "topic/PLbattery"
 #endif
 #ifdef SPUTTERING 
     #define MQTT_TOPIC "topic/SP"
-    #define BATTERY_TOPIC "topic/SP_battery"
+    #define BATTERY_TOPIC "topic/SPbattery"
 #endif
 #ifdef SPIN_COATING 
     #define MQTT_TOPIC "topic/SC"
-    #define BATTERY_TOPIC "topic/SC_battery"
+    #define BATTERY_TOPIC "topic/SCbattery"
 #endif
 #endif
 

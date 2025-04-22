@@ -33,7 +33,7 @@ void configure_adxl(void)
 
 
     write_buffer[0] = ADXL_FILTER_REGISTER;
-    write_buffer[1] = 0x00;
+    write_buffer[1] = 0x00; // No filtering, we do this on the Raspberry Pi
     ret = i2c_transmit_sensor(adxl_handle, write_buffer, sizeof(write_buffer));   
     if (ret != ESP_OK)
     {
@@ -61,14 +61,13 @@ void configure_adxl(void)
 
 void get_vibration_readings(uint8_t *readings)
 {
-    //ESP_LOGI("get_vibration_readings", "start");
     // Take the i2c bus
     if (xSemaphoreTake(adxl_i2c_mutex, TRANSMISSION_TIMEOUT_MS / portTICK_PERIOD_MS) != pdTRUE)
     {
         ESP_LOGE("get_vibration_readings", "Failed to take adxl i2c mutex");
         abort();
     }
-    //ESP_LOGI("get_vibration_readings", "got semaphore");
+
     // Address of the registers to start reading acceleration data at
     uint8_t write_buffer[1] = {ADXL_READINGS_REGISTER};
     const TickType_t period_ticks = pdMS_TO_TICKS(1000 / ADXL_SAMPLE_RATE);
@@ -76,18 +75,19 @@ void get_vibration_readings(uint8_t *readings)
     int i = 0;
     TickType_t last_wake_time = xTaskGetTickCount();
     esp_err_t ret = ESP_OK;
+
     // Due to the strict timing requirements, we don't retry taking readings. 
     // We simply send dummy values if any of the readings fail
     while(count < ADXL_NUM_READINGS && ret == ESP_OK)
     {
-        //ESP_LOGI("get_vibration_readings", "taking reading");
+        // Each reading takes up 9 bytes in teh buffer, starting in the first open byte
         ret = i2c_master_transmit_receive(adxl_handle, write_buffer, 1, &readings[i], 9, 5);
-        //ESP_LOGI("get_vibration_readings", "took one");
         vTaskDelayUntil(&last_wake_time, period_ticks);
         i += 9;
         count++;
     }
-    //ESP_LOGI("get_vibration_readings", "finishe taking");
+
+    // If Something went wrong, return dummy readings
     if (adxl_config_error || ret != ESP_OK)
     {
         ESP_LOGE("get_vibration_readings", "Failed to take reading, using dummy values");
@@ -105,6 +105,9 @@ void get_vibration_readings(uint8_t *readings)
     }
 }
 
+/*
+ Helper method used to convery the vibration readings into a large HEX string
+*/
 void encode_to_hex(uint8_t *readings_buffer, size_t buffer_length, char *output_buffer)
 {
     const char *hex_chars = "0123456789ABCDEF";

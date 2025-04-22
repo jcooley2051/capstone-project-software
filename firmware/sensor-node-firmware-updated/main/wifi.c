@@ -101,7 +101,6 @@ void config_wifi(void)
             .ssid = WIFI_SSID,
             .password = WIFI_PASSWORD,
             .threshold.authmode = WIFI_AUTH_WPA2_PSK,
-            //.threshold.authmode = WIFI_AUTH_OPEN,
         },
     };
 
