@@ -137,10 +137,13 @@ void vibration_readings(void *arg)
 void print_battery_readings(void * arg)
 {
     int voltage_mV = 0;
+    float percentage;
     while(1)
     {
         get_battery_voltage(&voltage_mV);
+        convert_voltage_to_percent(&percentage, &voltage_mV);
         printf("Voltage: %f\n", (3.25)*((float)voltage_mV)/1000);
+        printf("Percentage: %0.2f", percentage);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
@@ -153,11 +156,13 @@ void publish_battery_readings(void * arg)
     char buff[30];
     int buff_len = 30;
     int voltage_mV = 0;
+    float percentage = 0;
     while(1)
     {
     
         get_battery_voltage(&voltage_mV);
-        if (snprintf(buff, buff_len, "{\"battery_voltage\": %0.2f}", ((float)voltage_mV)/1000) < 0)
+        convert_voltage_to_percent(&percentage, &voltage_mV);
+        if (snprintf(buff, buff_len, "%0.0f%%", percentage) < 0)
         {
             ESP_LOGE("publish_battery_readings","Error: something happened while generating mqtt message");
             error_counter++;
@@ -172,11 +177,6 @@ void publish_battery_readings(void * arg)
         {
             ESP_LOGE("publish_battery_readings", "Error: MQTT outbox full");
             error_counter++;
-        }
-        if (error_counter > ERROR_COUNT_THRESHOLD)
-        {
-            ESP_LOGE("publish_battery_readings", "Error: We are getting lots of errors, rebooting...");
-            esp_restart();
         }
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
