@@ -76,7 +76,7 @@ void init_uart(void)
         abort();
     }
 
-    // Set the drive capability for the GPIO pins (may be removed)
+    // Set the drive capability for the GPIO pins
     gpio_set_drive_capability(TX_GPIO_PIN, GPIO_DRIVE_CAP_3);
     gpio_set_drive_capability(RX_GPIO_PIN, GPIO_DRIVE_CAP_3);
 

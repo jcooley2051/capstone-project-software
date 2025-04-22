@@ -8,7 +8,7 @@
 #ifdef SPIN_COATING
 
 
-// The first time this is run, it will fail. Don't know why. It just does. Doesn't impacy performance of the firmware
+// The first time this is run, it will fail. Don't know why. It just does. Doesn't impact performance of the firmware
 void get_particle_count(uint16_t *reading)
 {
     // Command to read data, see data sheet
@@ -22,7 +22,7 @@ void get_particle_count(uint16_t *reading)
         abort();
     }
 
-    // Send read data command
+    // Send read data command, retry up to 3 times if it fails
     int bytes_sent = 0;
     int retry_count = 0;
     do
@@ -64,6 +64,7 @@ void get_particle_count(uint16_t *reading)
         ESP_LOGE("get_particle_count", "Error: Unexpected number of bytes received");
         *reading = DUMMY_PARTICLE_COUNT;
     }
+    
     // Relinquish control of the UART bus
     if (xSemaphoreGive(uart_mutex) != pdTRUE)
     {

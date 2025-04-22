@@ -193,7 +193,9 @@ void read_compensation_bme280(void)
     }
 }
 
-// Function to get temperature and humidity readings from the BME280, they need to be together because temperature is used in calculating the RH
+/*
+ Function to get temperature and humidity readings from the BME280, they need to be together because temperature is used in calculating the RH
+*/
 void get_temp_and_humidity(temp_and_humidity_t *readings)
 {
     // Starting address for temperature and humidity readings
@@ -225,9 +227,11 @@ void get_temp_and_humidity(temp_and_humidity_t *readings)
         return;
     }
 
+    // Convert raw readings to actual temp and humidity values
+
     int32_t t_fine; // Fine temperature to use in humidity calculation
 
-    // Print temperature readings (for explaination, visit BME280 datasheet)
+    // Convert temperature readings (for explaination, visit BME280 datasheet)
     int32_t temp_reading = (read_buffer[3] << 12) | (read_buffer[4] << 4) | ((read_buffer[5] & 0xF0) >> 4);
     int32_t var1, var2;
     var1 = ((((temp_reading >> 3) - ((int32_t)dig_T1 << 1))) * ((int32_t)dig_T2)) >> 11;
@@ -236,7 +240,7 @@ void get_temp_and_humidity(temp_and_humidity_t *readings)
     // resolution is 0.01 DegC, so "1234" equals 12.34 DegC
     readings->temp_reading = (t_fine * 5 + 128) >> 8;
 
-    // Print humidity readings (for explaination, visit BME280 datasheet)
+    // Convert humidity readings (for explaination, visit BME280 datasheet)
     int32_t humidity_reading = (read_buffer[6] << 8) | read_buffer[7];
     int32_t v_x1_u32r;
     v_x1_u32r = (t_fine - ((int32_t)76800));

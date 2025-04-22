@@ -22,8 +22,9 @@
 #define TRANSMISSION_TIMEOUT_MS 50
 
 
-// Automatically select which I2C port to use
-#define I2C_PORT_AUTO -1
+// define which I2C peripheral to use
+#define I2C_PORT_ZERO 0
+#define I2C_PORT_ONE 1
 
 //Retry any failed transaction up to I2C_TRANSACTION_RETRY_COUNT times
 #define I2C_TRANSACTION_RETRY_COUNT 3

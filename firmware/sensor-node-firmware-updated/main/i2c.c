@@ -16,14 +16,13 @@ i2c_master_dev_handle_t adxl_handle;
 SemaphoreHandle_t i2c_mutex;
 SemaphoreHandle_t adxl_i2c_mutex;
 
-
 // Initialize the I2C master bus
 void init_i2c(void)
 {
     // Master bus config for the bus with the BME and VEML sensors
     i2c_master_bus_config_t i2c_mst_config = {
         .clk_source = I2C_CLK_SRC_DEFAULT,
-        .i2c_port = I2C_PORT_AUTO,
+        .i2c_port = I2C_PORT_ZERO,
         .scl_io_num = SCL_GPIO_PIN,
         .sda_io_num = SDA_GPIO_PIN,
         .glitch_ignore_cnt = 7,
@@ -74,6 +73,9 @@ void init_i2c(void)
     }
 }
 
+/*
+ Helper method to transmit to a sensor using I2C, will retry up to 3 times in the event of a failed transmission
+*/
 esp_err_t i2c_transmit_sensor(i2c_master_dev_handle_t dev_handle, uint8_t *write_buffer, size_t write_len)
 {
     esp_err_t ret = ESP_OK;
@@ -90,6 +92,9 @@ esp_err_t i2c_transmit_sensor(i2c_master_dev_handle_t dev_handle, uint8_t *write
     return ret;
 }
 
+/*
+ Helper method to transmit and receive to/from a sensor using I2C, will retry up to 3 times in the event of a failed transmission
+*/
 esp_err_t i2c_transmit_receive_sensor(i2c_master_dev_handle_t dev_handle, uint8_t *write_buffer, size_t write_len, uint8_t *read_buffer, size_t read_len)
 {
     esp_err_t ret = ESP_OK;
@@ -113,7 +118,7 @@ void init_i2c_adxl(void)
     // Master bus config for the bus with the ADXL sensor
     i2c_master_bus_config_t adxl_i2c_mst_config = {
         .clk_source = I2C_CLK_SRC_DEFAULT,
-        .i2c_port = I2C_PORT_AUTO,
+        .i2c_port = I2C_PORT_ONE,
         .scl_io_num = ADXL_SCL_GPIO_PIN,
         .sda_io_num = ADXL_SDA_GPIO_PIN,
         .glitch_ignore_cnt = 7,
@@ -145,7 +150,7 @@ void init_i2c_adxl(void)
     {
         adxl_i2c_mutex = xSemaphoreCreateBinary();
         retry_count++;
-        if (i2c_mutex == NULL)
+        if (adxl_i2c_mutex == NULL)
         {
             vTaskDelay(I2C_SETUP_RETRY_DELAY / portTICK_PERIOD_MS);
         }
@@ -166,7 +171,7 @@ void init_i2c_adxl(void)
 }
 #endif
 
-// Adds the BME280 as a slave device on the I2C bus
+// Adds the BME280 as a device on the I2C bus
 void add_bme_i2c(void)
 {
     i2c_device_config_t bme_cfg = {
@@ -196,7 +201,7 @@ void add_bme_i2c(void)
 }
 
 #if defined(PHOTOLITHOGRAPHY) || defined(SPUTTERING)
-// Adds the VEML7700 as a slave device on the I2C bus
+// Adds the VEML7700 as a device on the I2C bus
 void add_veml_i2c(void)
 {
     i2c_device_config_t veml_cfg = {
@@ -227,6 +232,7 @@ void add_veml_i2c(void)
 #endif
 
 #if defined(PHOTOLITHOGRAPHY) || defined(SPIN_COATING)
+// Adds the ADXL355 as a device on its I2C bus
 void add_adxl_i2c(void)
 {
     i2c_device_config_t adxl_cfg = {

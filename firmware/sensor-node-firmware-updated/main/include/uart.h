@@ -8,8 +8,8 @@
 #define UART_CONSOLE_TAG "UART"
 
 // Transmit and receive pins for UART
-#define RX_GPIO_PIN 16
-#define TX_GPIO_PIN 17
+#define RX_GPIO_PIN 9
+#define TX_GPIO_PIN 46
 
 // Uart port number to use
 #define UART_PORT UART_NUM_1
