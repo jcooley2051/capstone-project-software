@@ -114,9 +114,6 @@ void app_main(void)
     // Give Sensors time to take initial readings
 #endif
 
-    // We want to print the battery readings to the console whether we are in test mode or prod mode
-    xTaskCreate(print_battery_readings, "Battery Readings Print Task", 2048, NULL, 0, NULL);
-
     // Delay to give sensors time to take initial readings
     vTaskDelay(1000 / portTICK_PERIOD_MS);
 

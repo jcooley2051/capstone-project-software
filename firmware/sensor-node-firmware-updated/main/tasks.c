@@ -143,7 +143,7 @@ void print_battery_readings(void * arg)
         get_battery_voltage(&voltage_mV);
         convert_voltage_to_percent(&percentage, &voltage_mV);
         printf("Voltage: %f\n", (3.25)*((float)voltage_mV)/1000);
-        printf("Percentage: %0.2f", percentage);
+        printf("Percentage: %0.2f\n", percentage);
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }
