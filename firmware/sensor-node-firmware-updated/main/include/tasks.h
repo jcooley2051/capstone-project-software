@@ -25,5 +25,6 @@ void publish_battery_readings(void * arg);
 void print_readings(void *arg);
 void get_message(char *buff, size_t buff_len, all_readings_t *readings);
 void print_acceleration(all_readings_t *readings);
+int32_t sign_extend_20bit(uint32_t value);
 
 #endif

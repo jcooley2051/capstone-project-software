@@ -8,8 +8,8 @@
 
 // uncomment which station are we compiling for (uncommenting All stations will enable all sensors)
 //#define PHOTOLITHOGRAPHY
-#define SPUTTERING
-//#define SPIN_COATING
+//#define SPUTTERING
+#define SPIN_COATING
 
 // uncomment if the Spin coating station gets a BME280
 //#define BME_SPIN_COATING
